@@ -1,0 +1,223 @@
+root : 
+	workflow SEQ
+	eof
+	.
+	
+workflow :
+	"WORKFLOW" newline
+	"NAME" string newline
+//	"(*" newline indent
+//		(((ident | int | string | ":" | double)SEQ)OPT newline indent OPT) SEQ
+//	"*)" newline
+	"(*" newline
+		(indent | ident | int | string | ":" | double | newline) SEQ
+	"*)" newline
+	("BATCHSIZE" int "\n" [batchsize])
+	"NUMBEROFBATCHES" int newline
+	"BATCHRUN" int int int newline
+	"NEXP" distribution newline
+	newline
+	"METANAME" newline
+	("(" (string ":" string ":METAURL") OPT ")") SEQ newline
+	"REVISIONCOMMENT" newline
+	newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"PROCESSOWNER" string newline
+	"METADATA" newline 
+	"RESPONSIBLE" newline
+	"ROLE" newline
+	role SEQ newline
+	"HIERARCHY" newline
+	newline
+	"DRAWING" newline
+	newline
+	"RESOURCE" newline
+	newline
+	"GROUP" newline
+	group SEQ OPT
+	newline
+	("PROCESS" ident "DBID" int newline
+	"(*" newline (indent ident newline) SEQ "*)" newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"METADATA" newline
+	"QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	( document | application | folder ) SEQ OPT
+	newline
+	"ARCHIVE" newline
+	newline
+	"ACTIVITY" newline
+	activity SEQ OPT
+	newline
+	"TRIGGER" newline
+	trigger SEQ OPT
+	newline
+	"CONDITION" newline
+	condition SEQ OPT
+	newline
+	"ORGANISATION" newline
+	"DRAWING" newline
+	("TEXT" int int int int int int int int  "FILLCOLOR" int int int int "LINECOLOR" int int int int int string ("CENTER"|"LEFT"|"RIGHT") "FONT" string "FONTCOLOR" int int int newline) SEQ OPT
+	newline
+	"END" newline
+	newline
+	) SEQ
+	.
+
+group :
+	ident "DBID" int "REFERENCE" ident int int newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"(" ident OPT ")" "METADATA" newline
+	"QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	.
+
+document :
+	"DOCUMENT" ident "DBID" int ("REFERENCE" ident int int) OPT newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	("PAPER"|"FILE") ("IN"|"OUT"|"OUTIN") OPT "()" "STANDARDLETTER" string "LOCATIONDMS" string "METADATA" "ROLE" "()" newline
+	"LABEL" string "QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	.
+	
+application :
+	"APPLICATION" ident "DBID" int ("REFERENCE" ident int int)OPT newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"(" ("$" ident "." ident) OPT ")" "COMSCRIPT" string "NRARGUMENTS" int "METADATA" "ROLE" "()" newline
+	"LABEL" string "QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	.
+	
+folder :
+	"FOLDER" ident "DBID" int "REFERENCE" ident int int newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"()" "METADATA" "ROLE" "()" newline
+	"LABEL" string "QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	.
+	
+activity :
+	ident "DBID" int coordinate newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	( "MODEL" int "()()" 
+	| "CONTROL"
+	| "BASIC"
+	| "LOGISTIC"
+	| "AUTHORISATION"
+	| "COMMUNICATION"
+	| "PROCESS" ident newline indent OPT
+	) "START" OPT "STARTMODEL" OPT "END" OPT "ENDMODEL" OPT newline
+	"APPLICATION" "(" ("$" ident "." ident) SEQ OPT ")" newline
+	newline
+	"SINGLE" newline
+	"ROLE" "GROUP" OPT ident OPT newline
+	"RESPONSIBLE" ident OPT newline
+	"RESOURCE" newline
+	"DATA" ("$" ident "." ident "MANDATORY" OPT ("CREATED"|"CHANGED")OPT newline) SEQ OPT newline
+	"OUT" (string coordinate coordinate "DESCRIPTION" string) OPT newline
+	(
+		"WORKINSTRUCTIONS" string newline
+		"METADATA" newline
+		"REVISIONCOMMENT" newline
+		(indent "$" ident "." ident coordinate "DISTRIBUTION" double newline) OPT
+		indent (string coordinate coordinate "DESCRIPTION" string) OPT newline
+	) SEQ OPT	
+	"UNSET" newline
+	"RESTART" newline
+	"ARCHIVE" newline 
+	"RETRIEVE" "METADATA" (string "," ("true"|"false") "," int "," double "," "," string "," string "," "ABSOLUTE" "," "INPLACE") OPT newline
+	"ALLOCATE" int newline
+	"COST" double newline
+	"FREQUENCY" double newline
+	"DURATION" distribution newline
+	"PRIORITY" distribution newline
+	"ANALYSIS" "IN" "AND" "OUT" "AND" newline
+	"ROLE" "()" newline
+	"SEQUENCE" int newline
+	"QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	newline
+	newline
+	.
+
+trigger :
+	ident "DBID" int newline
+	coordinate newline
+	"START" string coordinate coordinate "DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"METADATA" newline
+	"REVISIONCOMMENT" newline
+	(indent "$" ident "." ident coordinate "DISTRIBUTION" double newline) OPT
+	indent (string coordinate coordinate "DESCRIPTION" string) OPT newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	("POST"|"SOFTWARE"|"HUMAN"|"PHONE"|"EBUSINESS")OPT "APPLICATION" "()" newline
+	("$" ident "." ident) SEQ OPT "METADATA" "FREQUENCY" double newline
+	"DURATION" distribution newline
+	"ANALYSIS" "IN" "AND" "OUT" "AND" newline
+	"ROLE" "()" newline
+	"SEQUENCE" int newline
+	"QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	newline
+	.
+
+condition :
+	ident "DBID" int newline
+	coordinate coordinate newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	"OUT" (string coordinate coordinate "DESCRIPTION" string) OPT newline
+	("WORKINSTRUCTIONS" string newline
+	"METADATA" newline
+	"REVISIONCOMMENT" newline
+	 indent "$" ident "." ident coordinate "DISTRIBUTION" double newline
+	 indent (string coordinate coordinate "DESCRIPTION" string) OPT newline
+	) SEQ OPT
+	"UNSET" newline
+	":" "METADATA" newline
+	"SEQUENCE" int newline
+	"QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	indent "MANAGEMENTINFOLABEL" string newline
+	"TERM" string newline
+	newline
+	.
+
+role :
+	ident "DBID" int "REFERENCE" ident int int newline
+	"DESCRIPTION" string newline
+	"WORKINSTRUCTIONS" string newline
+	coordinate "METADATA" newline
+	"AVAILABLE" int newline
+	"INTERNAL" newline
+	"COST" double newline
+	"ORGANISATION" newline
+	"QUALITY" newline
+	"REVISIONCOMMENT" newline
+	newline
+	.
+
+coordinate :
+	"(*" (int ":" int) SEQ OPT "*)"
+	.
+
+distribution :
+	("CONSTANT"|"UNIFORM")OPT "MIN" double "MAX" double "MEAN" double "VARIANCE" double "NUMBER" double "CONSTANT" double
+	.
+	

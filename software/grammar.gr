@@ -1,0 +1,26 @@
+root : nt_def SEQ eof.
+nt_def : ident ":" or_rule "." [nt_def].
+or_rule : rule CHAIN "|".
+rule :  opt_elem SEQ OPT ( "[" (ident | "+" ident [concat]) "]" ) OPT [rule] .
+opt_elem : list_elem "OPT" [opt] 
+         | list_elem .
+list_elem : prim_elem "SEQ" [seq] 
+          | prim_elem "LIST" [list]
+          | prim_elem "CHAIN" string [chain] 
+          | prim_elem .
+prim_elem : string ("*"[local]) OPT [literal]
+          | ident
+          | "ident" [identalone]
+          | "\\" ident [wsterminal]
+          | "(" or_rule ")"
+          | charset [charset]
+          .
+charset : ( char ".." char [charrange]
+		  | char 
+		  | "any" [any]
+		  ) LIST
+		  ( "-" char )SEQ OPT
+		  .
+          
+		
+		

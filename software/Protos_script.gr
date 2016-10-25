@@ -1,0 +1,336 @@
+
+root : 
+	workflow SEQ
+	"\n" OPT
+	eof
+	.
+
+workflow :
+	"WORKFLOW\n"
+	"NAME " string "\n"
+	//"(*" "\n"
+	//	(indent OPT (keyword ":" OPT (double | int | string)SEQ OPT)OPT "\n") SEQ
+	//indent "*)" "\n"
+	"(*" (keyword | ":" | double | int | string | ' ','\n','\t' SEQ )SEQ OPT "*)\n"
+	"BATCHSIZE " int "\n"
+	"NUMBEROFBATCHES " int "\n"
+	"BATCHRUN " int " " int " " int "\n"
+	"NEXP " distribution "\n"
+	"\n"
+	"METANAME\n"
+	(("(" \osp ( "(" string SEQ ")" | string ":" string ":" keyword("(" (string " ")SEQ ")")OPT " ")SEQ OPT ")") SEQ "\n") SEQ
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	("PROCESSOWNER " string "\n")OPT
+	"METADATA " metadata "\n" 
+	"RESPONSIBLE\n"
+	"ROLE" "\n"
+	role SEQ OPT "\n"
+	"HIERARCHY\n"
+	(((id coordinate OPT)SEQ)CHAIN " > ")OPT "\n"
+	( "DRAWING\n"
+	  drawings "\n"
+	) OPT
+	"RESOURCE" "\n"
+	resource SEQ OPT "\n"
+	"GROUP" "\n"
+	group SEQ OPT
+	"\n"
+	process SEQ
+	[workflow]
+	.
+
+resource :
+	idws "DBID " int \osp \osp ("REFERENCE " idws intws intws) OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	string " (" (modelident " ")SEQ OPT ") " "METADATA " metadata "\n"
+	"\n"
+	"\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[resource]
+	.
+	
+group :
+	idws "DBID " int \osp \osp ("REFERENCE " idws intws intws)OPT ("INVISIBLE"[invisible])OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"(" idws SEQ OPT ") " "METADATA " metadata "\n"
+	"QUALITY " OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[group]
+	.
+
+process :
+	"PROCESS " idws "DBID " int "\n"
+	"(*" "\n" (' ','\t'SEQ OPT keyword "\n") SEQ "*)" "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"METADATA " metadata "\n"
+	"QUALITY " OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	(document | application | folder | data | struct) SEQ OPT
+	"\n"
+	"ARCHIVE" "\n"
+	archive SEQ OPT
+	"\n"
+	"ACTIVITY" "\n"
+	activity SEQ OPT
+	"\n"
+	"TRIGGER" "\n"
+	trigger SEQ OPT
+	"\n"
+	"CONDITION" "\n"
+	condition SEQ OPT
+	"\n"
+	"ORGANISATION " OPT "\n"
+	( "DRAWING\n"
+	  drawings "\n"
+	)OPT
+	"END" "\n"
+	"\n"
+	[process]
+	.
+
+document :
+	"DOCUMENT " idws "DBID " int \osp \osp ("REFERENCE " idws intws intws)OPT ("INVISIBLE"[invisible])OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	("PAPER " [paper]|"FILE " [file]|"EMAIL " [email]|"FAX " [fax]) ("INOUT" [outin]|"IN"  [in]|"OUTIN" [outin]|"OUT" [out]) OPT " (" (modelident " ")SEQ OPT ") " ("STANDARDLETTER " string " ")OPT ("LOCATIONDMS " string " ")OPT 
+	"METADATA " metadata " "
+	"ROLE " "(" (modelref " ")SEQ OPT ")" "\n"
+	("LABEL " string " " "QUALITY " OPT)OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[document]
+	.
+
+application :
+	"APPLICATION " idws "DBID " int \osp \osp ("REFERENCE " idws intws intws)OPT ("INVISIBLE"[invisible])OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	("AUTOMATIC"[automatic])OPT "(" (modelref " ")SEQ OPT ") " ("COMSCRIPT " string " NRARGUMENTS " intws)OPT 
+	"METADATA " metadata " "
+	"ROLE " "(" (modelref " ")SEQ OPT ")" "\n"
+	("LABEL " string " " "QUALITY " OPT)OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[application]
+	.
+
+folder :
+	"FOLDER " idws "DBID " int \osp \osp ("REFERENCE " idws intws intws)OPT ("INVISIBLE"[invisible])OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"(" (modelident " ")SEQ OPT ") " "METADATA " metadata " " "ROLE " "(" (modelref " ")SEQ OPT ")" "\n"
+	("LABEL " string " " "QUALITY " OPT)OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[folder]
+	.
+
+data :
+	"DATA " idws "DBID " int \osp \osp ("REFERENCE " idws intws intws)OPT ("INVISIBLE"[invisible])OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	("DATE" [date]|"INTEGER" [integer]|"STRING" "[" int "]" [string]|"UNTYPED" [untyped]|"BOOLEAN" [boolean]|"TIMESTAMP" [timestamp]) " "
+	("FORMAT " string " ")OPT ("YESLABEL " string " ")OPT ("NOLABEL " string)OPT ("SWITCHVALUES " string " ")OPT "METADATA " metadata " ROLE " "(" (modelref " ")SEQ OPT ")" "\n" 
+	("LABEL " string " \n")OPT
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	("FORMATFUNCTION " intws "\n")OPT
+	("FREE ")OPT "\n"
+	[data]
+	.
+
+struct :
+	"STRUCT " idws "DBID " int \osp \osp  ("REFERENCE " idws intws intws) OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"(" (modelident " ")SEQ OPT ") " "METADATA " metadata " " "ROLE " "(" (modelref " ")SEQ OPT ")" "\n"
+	"LABEL " string " \n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[struct]
+	.
+
+archive :
+	idws "DBID " intws coordinate "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"METADATA " metadata "\n"
+	"SEQUENCE " int "\n"
+	("QUALITY " [quality])OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	"\n"
+	[archive]
+	.
+
+activity :
+	idws "DBID " intws coordinate "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	( "MODEL " int "()()" [model]
+	| "CONTROL" [control]
+	| "BASIC" [basic]
+	| "LOGISTIC" [logistic]
+	| "AUTHORISATION" [authorisation]
+	| "COMMUNICATION" [communication]
+	| "PROCESS " id "\n" indent OPT [process]
+	) (" START" [start])OPT (" STARTMODEL" [startmodell])OPT (" END" [end])OPT (" ENDMODEL" [endmodel])OPT (" USER" [user])OPT "\n"
+	"APPLICATION" " (" (modelident " ")SEQ OPT ")" "\n"
+	("BATCH " intws "%" int ":" int ":" int (" SELECTIVE" [selective])OPT)OPT "\n"
+	("SINGLE" [single]|"MULTIPLE" [multiple]) "\n"
+	"ROLE" " GROUP" OPT (" " modelref) SEQ OPT \osp "\n"
+	"RESPONSIBLE" (" " modelref) SEQ OPT "\n"
+	"RESOURCE" (" " modelref) SEQ OPT "\n"
+	"DATA " ((modelident (" MANDATORY" [mandatory])OPT (" CREATED" [created])OPT (" DELETED" [deleted])OPT (" CHANGED" [changed])OPT [data])OPT "\n") SEQ OPT "\n"
+	"OUT " enabling SEQ OPT "\n"
+	"UNSET " enabling SEQ OPT "\n"
+	"RESTART " enabling SEQ OPT "\n"
+	"ARCHIVE " archiveoperation SEQ OPT "\n" 
+	"RETRIEVE " archiveoperation SEQ OPT "METADATA " metadata "\n"
+	"ALLOCATE " int "\n"
+	"COST " double "\n"
+	"FREQUENCY " double "\n"
+	"DURATION " distribution "\n"
+	"PRIORITY " distribution "\n"
+	"ANALYSIS IN AND OUT AND" "\n"
+	"ROLE " "(" (modelref " " ("CONSULTED "[consulted])OPT ("INFORMED "[informed])OPT)SEQ OPT ")" "\n"
+	"SEQUENCE " int "\n"
+	"QUALITY " OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	"\n"
+	"\n"
+	[activity]
+	.
+
+enabling : 
+	\osp string " " coordinate " " coordinate " " "DESCRIPTION " string OPT "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"METADATA " metadata 
+	("\n" "REVISIONCOMMENT" "\n")OPT " "
+	modelident ("IF" expr)OPT coordinate ("DISTRIBUTION " double)OPT "\n" " "
+	[enabling]
+	.
+
+expr
+	: modelident ">" int [gt]
+	| modelident "<" int [lt]
+	.
+
+archiveoperation :
+	string " " coordinate " " coordinate " DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	modelident coordinate " METADATA " metadata
+	("\n" "REVISIONCOMMENT" "\n" "\n")OPT
+	\osp "(" (modelident " ")SEQ OPT ") "
+	[archiveoperation]
+	.
+
+trigger :
+	idws "DBID " int "\n"
+	coordinate "\n"
+	( ("START" [start]|"CANCEL" [cancel]|"RESTART" [restart]) enabling [triggering]
+	) SEQ OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	("POST " [post]|"SOFTWARE " [software] |"HUMAN " [human]|"PHONE " [phone]|"EBUSINESS " [ebusiness]|"FILE " [file]|"EMAIL " [email])OPT "APPLICATION " "(" (modelident " ")SEQ OPT ")" "\n"
+	("CYCLIC" "\n" [cyclic]|"ELAPSE " "%" int ":" int ":" int "\n")SEQ OPT 
+	(modelident " ")SEQ OPT 
+	("CYCLIC" "\n" [cyclic]|"ELAPSE" "%" int ":" int ":" int "\n")SEQ OPT 
+	"METADATA " metadata 
+	"FREQUENCY " double "\n"
+	"DURATION " distribution "\n"
+	"ANALYSIS IN AND OUT AND\n"
+	"ROLE " "(" (modelref " ")SEQ OPT ")" "\n"
+	"SEQUENCE " int "\n"
+	"QUALITY " OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	"\n"
+	[trigger]
+	.
+
+condition :
+	idws "DBID " int "\n"
+	coordinate coordinate "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	"OUT " enabling SEQ OPT "\n"
+	"UNSET " enabling SEQ OPT "\n"
+	":" "METADATA " metadata "\n"
+	"SEQUENCE " int "\n"
+	"QUALITY " OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	(" MANAGEMENTINFOLABEL " string "  \n")OPT
+	("TERM " string " ")OPT "\n"
+	"\n"
+	[condition]
+	.
+
+role :
+	idws "DBID " int \osp \osp ("REFERENCE " idws intws intws)OPT ("INVISIBLE"[invisible])OPT "\n"
+	"DESCRIPTION " string "\n"
+	"WORKINSTRUCTIONS " string "\n"
+	coordinate " METADATA " metadata "\n"
+	"AVAILABLE " int "\n"
+	("INTERNAL" [internal]|"EXTERNAL" [external]) "\n"
+	"COST " double "\n"
+	("ORGANISATION " [organisation])OPT (" " int ":" int)SEQ OPT "\n"
+	("QUALITY " [quality])OPT "\n"
+	("REVISIONCOMMENT" "\n" "\n")OPT
+	[role]
+	.
+
+modelref :
+	("GROUP " [group]|"= " [is]|"# " [hash])OPT modelident OPT
+	[modelref]
+	.
+
+drawings :
+	("LINE " intws intws intws intws " LINECOLOR " intws intws intws intws intws int "\n" [line]
+	|"TEXT " intws intws intws intws intws intws intws intws ("DATA " modelident)OPT " FILLCOLOR " intws intws intws intws "LINECOLOR " intws intws intws intws intws string " "("CENTER " [center]|"LEFT " [left]|"RIGHT " [right]) "FONT " string "FONTCOLOR " intws intws int "\n" [text]
+	|"RECTANGLE " intws intws intws intws intws intws intws intws ("ACTIVITY " modelident)OPT " FILLCOLOR " intws intws intws intws "LINECOLOR " intws intws intws intws int "\n" [rectangle]
+	|"ELLIPSE " intws intws intws intws intws intws intws intws " FILLCOLOR " intws intws intws intws "LINECOLOR " intws intws intws intws int "\n" [ellipse]
+	|"TRIANGLE " intws intws intws intws intws intws " FILLCOLOR " intws intws intws intws "LINECOLOR " intws intws intws intws int "\n" [triangle]
+	)SEQ OPT
+	.
+
+coordinate :
+	"(*" (int ":" int [coord]) CHAIN " " OPT \osp "*)"
+	.
+
+distribution :
+	("CONSTANT " [constant]|"UNIFORM "  [uniform])OPT "MIN " doublews "MAX " doublews "MEAN " doublews "VARIANCE " doublews "NUMBER " doublews "CONSTANT " doublews
+	[distribution]
+	.
+
+modelident :
+	("$" id ".")OPT id [modelident]
+	.
+
+metadata :
+	(string "," ("true"[true]|"false"[false]) "," int "," double "," ("DATA " modelident|"ROLE " modelident|"ACTIVITY " modelident)OPT "," string "," string "," ("ABSOLUTE"|"BASE") "," ("INPLACE "|"NEW "|"MAX ")) SEQ OPT
+	.
+keyword : 'A'..'Z' ('A'..'Z','0'..'9')SEQ OPT .
+idws	: ('a'..'z','_' | '\\' '0'..'9' '0'..'9' '0'..'9')
+	  ('a'..'z','A'..'Z','_','0'..'9' | '\\' '0'..'9' '0'..'9' '0'..'9') SEQ OPT " "[id] .
+id	: ('a'..'z','_' | '\\' '0'..'9' '0'..'9' '0'..'9')
+	  ('a'..'z','A'..'Z','_','0'..'9' | '\\' '0'..'9' '0'..'9' '0'..'9') SEQ OPT [id] .
+string
+	: "\"" ('\\' '0'..'9' '0'..'9' '0'..'9' | any-'\"')SEQ OPT "\"" [string].
+int : "+" ('0'..'9')SEQ [int]
+    | '-' ('0'..'9')SEQ [int]
+    | '0'..'9' ('0'..'9')SEQ OPT [int] .
+intws : "+" ('0'..'9')SEQ " " [int]
+    | '-' ('0'..'9')SEQ " " [int]
+    | '0'..'9' ('0'..'9')SEQ OPT " " [int] .
+double 
+	: "+" ('0'..'9')SEQ ('.' ('0'..'9')SEQ)OPT ('e' ('-')OPT ('0'..'9')SEQ)OPT [double]
+    | '-' ('0'..'9')SEQ ('.' ('0'..'9')SEQ)OPT ('e' ('-')OPT ('0'..'9')SEQ)OPT [double]
+    | '0'..'9' ('0'..'9')SEQ OPT ('.' ('0'..'9')SEQ)OPT ('e' ('-')OPT ('0'..'9')SEQ)OPT [double] .
+doublews 
+	: "+" ('0'..'9')SEQ ('.' ('0'..'9')SEQ)OPT ('e' ('-')OPT ('0'..'9')SEQ)OPT " "[double]
+    | '-' ('0'..'9')SEQ ('.' ('0'..'9')SEQ)OPT ('e' ('-')OPT ('0'..'9')SEQ)OPT " "[double]
+    | '0'..'9' ('0'..'9')SEQ OPT ('.' ('0'..'9')SEQ)OPT ('e' ('-')OPT ('0'..'9')SEQ)OPT " "[double] .
+indent
+	: ("\t")SEQ OPT.
+
+osp
+	: " "OPT.

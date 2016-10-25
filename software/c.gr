@@ -1,0 +1,231 @@
+primary_expr
+        : ident
+        | int
+        | double
+        | char
+        | string
+        | "(" expr ")"
+        .
+
+postfix_expr
+        : postfix_expr "[" expr "]"  [arrayexp]
+        | postfix_expr "(" assignment_expr LIST OPT ")"  [call]
+        | postfix_expr "." ident  [field]
+        | postfix_expr "->" ident  [fieldderef]
+        | postfix_expr "++"  [post_inc]
+        | postfix_expr "--"  [post_dec]
+        | primary_expr
+        .
+
+unary_expr
+        : "++" unary_expr  [pre_inc]
+        | "--" unary_expr  [pre_dec]
+        | "&" cast_expr  [address_of]
+        | "*" cast_expr  [deref]
+        | "+" cast_expr  [plus]
+        | "-" cast_expr  [min]
+        | "~" cast_expr  [invert]
+        | "!" cast_expr  [not]
+        | "sizeof" ( unary_expr [typeof]
+                   | "(" ident ")"  
+                   )  [sizeof]
+        | postfix_expr
+        .
+
+cast_expr
+        : "(" abstract_declaration ")" cast_expr  [cast]
+        | unary_expr
+        .
+
+l_expr1 : l_expr1 \s "*" \s cast_expr  [times]
+        | l_expr1 \s "/" \s cast_expr  [div]
+        | l_expr1 \s "%" \s cast_expr  [mod]
+        | cast_expr
+        .
+l_expr2 : l_expr2 \s "+" \s l_expr1  [add]
+        | l_expr2 \s "-" \s l_expr1  [sub]
+        | l_expr1 
+        .
+l_expr3 : l_expr3 \s "<<" \s l_expr2  [ls]
+        | l_expr3 \s ">>" \s l_expr2  [rs]
+        | l_expr2
+        .
+l_expr4 : l_expr4 \s "<=" \s l_expr3  [le]
+        | l_expr4 \s ">=" \s l_expr3  [ge]
+        | l_expr4 \s "<"  \s l_expr3  [lt]
+        | l_expr4 \s ">"  \s l_expr3  [gt]
+        | l_expr4 \s "==" \s l_expr3  [eq]
+        | l_expr4 \s "!=" \s l_expr3  [ne]
+        | l_expr3
+        .
+l_expr5 : l_expr5 \s "^"  \s l_expr4 [bexor] | l_expr4 .
+l_expr6 : l_expr6 \s "&" \notamp \s l_expr5 [land]  | l_expr5 .
+l_expr7 : l_expr7 \s "|"  \s l_expr6 [lor]   | l_expr6 .
+l_expr8 : l_expr8 \s "&&" \s l_expr7 [and]  | l_expr7 .
+l_expr9 : l_expr9 \s "||" \s l_expr8 [or]   | l_expr8 .
+
+conditional_expr
+        : l_expr9 \s "?" \s l_expr9 \s ":" \s conditional_expr  [if_expr]
+        | l_expr9
+        .
+
+assignment_expr
+        : unary_expr \s assignment_operator \s assignment_expr  [assignment]
+        | conditional_expr
+        .
+
+assignment_operator
+        : "="   [ass] 
+        | "*="  [times_ass]
+        | "/="  [div_ass]
+        | "%="  [mod_ass] 
+        | "+="  [add_ass]
+        | "-="  [sub_ass]
+        | "<<=" [sl_ass]
+        | ">>=" [sr_ass]
+        | "&="  [and_ass]
+        | "|="  [or_ass]
+        | "^="  [exor_ass]
+        .
+
+expr    : assignment_expr LIST.
+
+constant_expr
+        : conditional_expr
+        .
+
+declaration
+        : \nl ( storage_class_specifier | type_specifier) SEQ OPT NONGREEDY
+          ( ( declarator (\s "=" \s initializer) OPT) LIST OPT ";"  [decl]
+          | func_declarator "(" parameter_declaration_list OPT ")"
+            ( ";" | \nl "{" \inc decl_or_stat \nl \dec "}" )  [new_style]
+          | func_declarator "(" ident_list OPT ")" declaration SEQ OPT
+            \nl "{" \inc decl_or_stat \nl \dec "}"  [old_style]
+          )
+        .
+
+storage_class_specifier
+        : "typedef"  [typedef]
+        | "extern"   [extern]
+        | "static"   [static]
+        | "auto"     [auto]
+        | "register" [register]
+        .
+
+type_specifier
+        : "char"     [char]
+        | "short"    [short]
+        | "int"      [int]
+        | "long"     [long]
+        | "signed"   [signed]
+        | "unsigned" [unsigned]
+        | "float"    [float]
+        | "double"   [double]
+        | "const"    [const]
+        | "volatile" [volatile]
+        | "void"     [void]
+        | struct_or_union_specifier  
+        | enum_specifier
+        | ident 
+        .
+
+struct_or_union_specifier
+        : "struct" ident \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [struct_d]
+        | "struct" \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [struct_n]
+        | "struct" ident  [struct] 
+        | "union" ident \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [union_d]
+        | "union" \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [union_n]
+        | "union" ident  [union]
+        .
+
+
+struct_declaration
+        : type_specifier struct_declaration  [type]
+        | struct_declarator LIST ";"  [strdec]
+        .
+
+struct_declarator
+        : declarator (":" constant_expr) OPT  [record_field]
+        .
+
+enum_specifier
+        : "enum" ident ("{" enumerator LIST "}")  [enum]
+        .
+
+enumerator
+        : ident ("=" constant_expr) OPT  [enumerator]
+        .
+
+func_declarator 
+        : "*" ("const" [const]) OPT func_declarator  [pointdecl]
+        | "(" func_declarator ")" 
+        | ident
+        .
+        
+declarator
+        : "*" ("const" [const]) OPT declarator  [pointdecl]
+        | "(" declarator ")" [brackets]
+        | declarator "[" constant_expr OPT "]"  [array]
+        | declarator "(" abstract_declaration_list OPT ")"  [function]
+        | \s ident
+        .
+
+abstract_declaration_list
+        : abstract_declaration
+          ( "," ( "..." [varargs]| abstract_declaration_list )) OPT
+        .
+parameter_declaration_list
+        : parameter_declaration
+          ( "," ( "..." [varargs] | parameter_declaration_list )) OPT
+        .
+ident_list 
+        : ident ( "," ( "..." [varargs] | ident_list )) OPT 
+        .
+
+parameter_declaration
+        : type_specifier parameter_declaration  [type]
+        | declarator
+        | abstract_declarator
+        .
+
+abstract_declaration
+        : type_specifier parameter_declaration  [type]
+        | abstract_declarator
+        .
+
+abstract_declarator
+        : "*" ("const" [const]) OPT abstract_declarator  [abs_pointdecl]
+        | "(" abstract_declarator ")" [abs_brackets]
+        | abstract_declarator "[" constant_expr OPT "]"  [abs_array]
+        | abstract_declarator "(" parameter_declaration_list ")"  [abs_func]
+        |
+        .
+
+initializer
+        : assignment_expr
+        | "{" \inc initializer LIST "," OPT \dec \nl "}"  [initializer]
+        .
+decl_or_stat 
+        : declaration SEQ OPT statement SEQ OPT
+        .
+
+statement
+        : \dec \nl (ident | "case" constant_expr | "default") ":" \inc statement  [label]
+        | \dec \nl "{" \inc decl_or_stat \dec \nl "}" \inc [brackets]
+        | \nl expr OPT ";"
+        | \nl "if" \s "(" expr ")" \inc statement  (\dec \nl "else" \inc statement) OPT \dec [if]
+        | \nl "switch" \s "(" expr ")" \inc statement \dec [switch]
+        | \nl "while" \s "(" expr ")" \inc statement \dec [while]
+        | \nl "do" \inc statement \dec \nl "while" \s "(" expr ")" ";"  [do]
+        | \nl "for" \s "(" expr OPT ";" 
+                    (\s expr) OPT ";" 
+                    (\s expr) OPT ")" \inc statement \dec [for]
+        | \nl "goto" ident ";"  [goto]
+        | \nl "continue" ";"  [cont]
+        | \nl "break" ";"  [break]
+        | \nl "return" expr OPT ";"  [ret]
+        .
+
+root    : (\nl declaration) SEQ OPT eof
+        .
+

@@ -1,0 +1,467 @@
+root
+	: (program | module) eof
+ 	.
+
+program
+	: "PROGRAM" ident ("(" ident LIST ")")OPT";" block "."
+ 	.
+
+block : 
+	("LABEL" uint LIST ";")OPT
+	("CONST" (ident "=" cexpression ";")LIST)OPT
+	("TYPE" type_definition LIST) OPT
+	("VAR" variable_declaration ";")SEQ OPT
+	(proc_or_func_declaration ";")SEQ OPT
+	statement_part
+	.
+
+module :
+	("CONST" (ident "=" cexpression ";")LIST)OPT
+	("TYPE" type_definition LIST) OPT
+	("VAR" variable_declaration ";")SEQ OPT
+	(proc_or_func_declaration ";")SEQ OPT
+	.
+
+
+cexpression 
+	: csimple_expression
+	| csimple_expression relop csimple_expression
+	.
+
+csimple_expression 
+	: cterm
+	| csimple_expression addop cterm
+ 	.
+
+cterm
+	: cfactor
+	| cterm mulop cfactor
+	.
+
+cfactor
+	: sign cfactor
+ 	| cexponentiation
+ 	.
+
+cexponentiation
+	: cprimary
+	| cprimary "**" cexponentiation
+	.
+
+cprimary 
+	: ident
+	| "(" cexpression ")"
+	| uint
+	| "NOT" cprimary
+	.
+
+constant
+	: int
+	| real
+	| string
+	.
+
+sign : "+" | "-" .
+
+
+type_definition
+	: ident "=" type_denoter ";"
+	.
+
+type_denoter 
+	: ident
+ 	| new_ordinal_type
+ 	| new_structured_type
+ 	| new_pointer_type
+	.
+
+
+new_ordinal_type : enumerated_type
+ | subrange_type
+ .
+
+enumerated_type : "(" ident LIST ")"
+ .
+
+subrange_type : constant ".." constant
+ .
+
+new_structured_type : structured_type
+ | "PACKED" structured_type
+ .
+
+structured_type : array_type
+ | record_type
+ | set_type
+ | file_type
+ .
+
+array_type : "ARRAY" "[" index LIST "]" "OF" component_type
+ .
+
+index_type : ordinal_type .
+
+ordinal_type : new_ordinal_type
+ | ident
+ .
+
+component_type : type_denoter .
+
+record_type 
+	: "RECORD" record_section CHAIN ";" ";" variant_part "END"
+	| "RECORD" record_section CHAIN ";" "END"
+	| "RECORD" variant_part "END"
+	.
+
+record_section : ident LIST ":" type_denoter
+ .
+
+variant_part 
+ : "CASE" variant_selector "OF" variant_list ";"
+ | "CASE" variant_selector "OF" variant_list
+ |
+ .
+
+variant_selector : tag_field ":" tag_type
+ | tag_type
+ .
+
+variant_list : variant_list ";" variant
+ | variant
+ .
+
+variant : case_constant_list ":" "(" record_section_list ")"
+ | case_constant_list ":" "(" record_section_list ";"
+  variant_part ")"
+ | case_constant_list ":" "(" variant_part ")"
+ .
+
+case_constant_list : case_constant_list "," case_constant
+ | case_constant
+ .
+
+case_constant : constant
+ | constant ".." constant
+ .
+
+tag_field : ident .
+
+tag_type : ident .
+
+set_type : "SET" "OF" base_type
+ .
+
+base_type : ordinal_type .
+
+file_type : "PFILE" "OF" component_type
+ .
+
+new_pointer_type : "^" domain_type
+ .
+
+domain_type : ident .
+
+variable_declaration_part : 
+ |
+ .
+
+variable_declaration_list :
+   variable_declaration_list ";" variable_declaration
+ | variable_declaration
+ .
+
+variable_declaration : ident LIST ":" type_denoter
+ .
+
+procedure_and_function_declaration_part :
+  proc_or_func_declaration_list ";"
+ |
+ .
+
+proc_or_func_declaration_list :
+   proc_or_func_declaration_list ";" proc_or_func_declaration
+ | proc_or_func_declaration
+ .
+
+proc_or_func_declaration : procedure_declaration
+ | function_declaration
+ .
+
+procedure_declaration : procedure_heading ";" directive
+ | procedure_heading ";" procedure_block
+ .
+
+procedure_heading : procedure_identification
+ | procedure_identification formal_parameter_list
+ .
+
+directive : "FORWARD"
+ | "EXTERNAL"
+ .
+
+formal_parameter_list : "(" formal_parameter_section_list ")" .
+
+formal_parameter_section_list : formal_parameter_section_list ";" formal_parameter_section
+ | formal_parameter_section
+ .
+
+formal_parameter_section : value_parameter_specification
+ | variable_parameter_specification
+ | procedural_parameter_specification
+ | functional_parameter_specification
+ .
+
+value_parameter_specification : ident LIST ":" ident
+ .
+
+variable_parameter_specification : "VAR" ident LIST ":" ident
+ .
+
+procedural_parameter_specification : procedure_heading .
+
+functional_parameter_specification : function_heading .
+
+procedure_identification : "PROCEDURE" ident .
+
+procedure_block : block .
+
+function_declaration : function_heading ";" directive
+ | function_identification ";" function_block
+ | function_heading ";" function_block
+ .
+
+function_heading
+	: "FUNCTION" ident formal_parameter_list OPT ":" result_type
+	.
+
+result_type : ident .
+
+function_identification : "FUNCTION" ident .
+
+function_block : block .
+
+statement_part : compound_statement .
+
+compound_statement : "BEGIN" statement CHAIN ";" "END" .
+
+statement : closed_statement
+ | open_statement
+ .
+
+open_statement : uint ":" non_labeled_open_statement
+ | non_labeled_open_statement
+ .
+
+closed_statement : uint ":" non_labeled_closed_statement
+ | non_labeled_closed_statement
+ .
+
+non_labeled_closed_statement : assignment_statement
+ | procedure_statement
+ | goto_statement
+ | compound_statement
+ | case_statement
+ | repeat_statement
+ | closed_with_statement
+ | closed_if_statement
+ | closed_while_statement
+ | closed_for_statement
+ |
+ .
+
+non_labeled_open_statement : open_with_statement
+ | open_if_statement
+ | open_while_statement
+ | open_for_statement
+ .
+
+repeat_statement : "REPEAT" statement CHAIN ";" "UNTIL" boolean_expression
+ .
+
+open_while_statement : "WHILE" boolean_expression "DO" open_statement
+ .
+
+closed_while_statement : WHILE boolean_expression "DO" closed_statement
+ .
+
+open_for_statement : "FOR" control_variable ":=" initial_value direction
+   final_value "DO" open_statement
+ .
+
+closed_for_statement : "FOR" control_variable ":=" initial_value direction
+   final_value "DO" closed_statement
+ .
+
+open_with_statement : "WITH" record_variable_list "DO" open_statement
+ .
+
+closed_with_statement : "WITH" record_variable_list "DO" closed_statement
+ .
+
+open_if_statement : "IF" boolean_expression "THEN" statement
+ | "IF" boolean_expression "THEN" closed_statement "ELSE" open_statement
+ .
+
+closed_if_statement : "IF" boolean_expression "THEN" closed_statement
+   "ELSE" closed_statement
+ .
+
+assignment_statement : variable_access ":=" expression
+ .
+
+variable_access : ident
+ | indexed_variable
+ | field_designator
+ | variable_access "^"
+ .
+
+indexed_variable : variable_access "[" index_expression_list "]"
+ .
+
+index_expression_list : index_expression_list "," index_expression
+ | index_expression
+ .
+
+index_expression : expression .
+
+field_designator : variable_access "." ident
+ .
+
+procedure_statement : ident params
+ | ident
+ .
+
+params : "(" actual_parameter_list ")" .
+
+actual_parameter_list : actual_parameter_list "," actual_parameter
+ | actual_parameter
+ .
+
+/*
+ * this forces you to check all this to be sure that only write and
+ * writeln use the 2nd and 3rd forms, you really can't do it easily in
+ * the grammar, especially since write and writeln aren't reserved
+ */
+actual_parameter : expression
+ | expression ":" expression
+ | expression ":" expression ":" expression
+ .
+
+goto_statement : "GOTO" label
+ .
+
+case_statement : "CASE" case_index "OF" case_list_element_list "END"
+ | "CASE" case_index "OF" case_list_element_list ";" "END"
+ | "CASE" case_index "OF" case_list_element_list ";"
+   otherwisepart statement "END"
+ | "CASE" case_index "OF" case_list_element_list ";"
+   otherwisepart statement ";" "END"
+ .
+
+case_index : expression .
+
+case_list_element_list : case_list_element_list ";" case_list_element
+ | case_list_element
+ .
+
+case_list_element : case_constant_list ":" statement
+ .
+
+otherwisepart : "OTHERWISE"
+ | "OTHERWISE" ":"
+ .
+
+control_variable : ident .
+
+initial_value : expression .
+
+direction : "TO"
+ | "DOWNTO"
+ .
+
+final_value : expression .
+
+record_variable_list : record_variable_list "," variable_access
+ | variable_access
+ .
+
+boolean_expression : expression .
+
+expression : simple_expression
+ | simple_expression relop simple_expression
+ .
+
+simple_expression : term
+ | simple_expression addop term
+ .
+
+term : factor
+ | term mulop factor
+ .
+
+factor : sign factor
+ | exponentiation
+ .
+
+exponentiation : primary
+ | primary "**" exponentiation
+ .
+
+primary : variable_access
+ | unsigned_constant
+ | function_designator
+ | set_constructor
+ | "(" expression ")"
+ | "NOT" primary
+ .
+
+unsigned_constant : unsigned_number
+ | string
+ | "NIL"
+ .
+
+unsigned_number : unsigned_integer | unsigned_real .
+
+unsigned_integer : DIGSEQ
+ .
+
+unsigned_real : real
+ .
+
+/* functions with no params will be handled by plain ident */
+function_designator : ident params
+ .
+
+set_constructor : "[" member_designator_list "]"
+ | "[" "]"
+ .
+
+member_designator_list : member_designator_list "," member_designator
+ | member_designator
+ .
+
+member_designator : member_designator ".." expression
+ | expression
+ .
+
+addop: "+"
+ | "-"
+ | "OR"
+ .
+
+mulop : "*"
+ | "/"
+ | "DIV"
+ | "MOD"
+ | "AND"
+ .
+
+relop : "="
+ | "<>"
+ | "<="
+ | "<"
+ | ">="
+ | ">"
+ | "IN"
+ .
+

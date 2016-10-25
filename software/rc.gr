@@ -1,0 +1,121 @@
+root : rules eof .
+rules : rule SEQ .
+
+rule
+	: "\n" [emptyline]
+	| comment "\n" [comment]
+	| "#include" string comment OPT "\n" [include]
+	| "#define" ident "\n" [define]
+	| "#undef" ident "\n" [undef]
+	| "#if" \s condition "\n" rules ("#else" "\n" rules)OPT "#endif" comment OPT "\n" [if]
+	| "#ifdef" ident "\n" rules ("#else" "\n" rules)OPT "#endif" comment OPT "\n" [ifdef]
+	| "#ifndef" ident "\n" rules ("#else" "\n" rules)OPT "#endif" comment OPT "\n" [ifndef]
+	| "LANGUAGE" (ident|int) "," \s (ident|int) "\n" [language]
+	| "#pragma" ident "(" pragma_expr LIST ")" "\n" [pragma]
+	| int \s "TEXTINCLUDE" ("DISCARDABLE" [discardable])OPT \s1 "\n" 
+	  "BEGIN" \inc "\n" 
+	     (string "\n") SEQ 
+	  \dec "END" "\n" [textinclude]
+	| "VS_VERSION_INFO" ident "\n"
+		vs_rules
+	    vs_group [vs_version_info]
+	| ident "MENU" ("PRELOAD" [preload])OPT ("DISCARDABLE" [discardable])OPT \s "\n"
+	    menu_group [menu]
+	| ident \t6 "BITMAP" ("MOVEABLE" [discardable])OPT ("PURE" [pure])OPT \t12 string "\n" [bitmap]
+	| ident \t6 "ICON" (\t8 "DISCARDABLE" [discardable])OPT \t12 string "\n" [icon]
+	| ident "ACCELERATORS" ("PRELOAD" [preload])OPT ("MOVEABLE" [moveable])OPT ("PURE" [pure])OPT "\n"
+	  "BEGIN" \inc "\n"
+	  ((string|ident) "," \t4 ident "," \t10 ("VIRTKEY" [virtkey]|"CONTROL" [control]|"ALT" [alt]|"SHIFT" [shift])LIST "\n") SEQ
+	  \dec "END" "\n" [accelerators]
+	| ident "DIALOG" ("DISCARDABLE" [discardable])OPT int ","\s int ","\s int ","\s int "\n"
+	  "STYLE" dialogopt "\n"
+	  ("CAPTION" string "\n")OPT
+	  "FONT" int ","\s string "\n"
+	  dialogdef [dialog]
+	| ident "DIALOGEX" int ","\s int ","\s int ","\s int "\n"
+	  "STYLE" dialogopt "\n"
+	  ("EXSTYLE" dialogopt "\n")OPT
+	  ("CAPTION" string "\n")OPT
+	  "FONT" int ","\s string (","\s int ","\s int ","\s hexint "\n")OPT
+	  dialogdef [dialogex]
+	| ident "DESIGNINFO" ("DISCARDABLE" [discardable])OPT "\n"
+	  "BEGIN" \inc "\n"
+	  ( (ident | string) ","\s "DIALOG" "\n"
+	    "BEGIN" \inc "\n"
+	    ( ident ","\s int  "\n"[value]
+	    ) SEQ
+	    \dec "END" "\n"
+	  ) CHAIN "\n"
+	  \dec "END" "\n" [desinginfo]
+	| ident "TOOLBAR" ("DISCARDABLE" [discardable])OPT int "," int "\n"
+	  "BEGIN" \inc "\n"
+	  ( "BUTTON" \t3 ident "\n" [button]
+	  | "SEPARATOR" "\n" [separator]
+	  ) SEQ
+	  \dec "END" "\n" [toolbar]
+	| "STRINGTABLE" ("PRELOAD" [preload])OPT ("DISCARDABLE" [discardable])OPT \s "\n"
+	  "BEGIN" \inc "\n"
+	  ( ident \s \stnl string "\n" [value]
+	  ) SEQ
+	  \dec "END" "\n" [stringtable]
+	.
+
+
+dialogdef
+	: "BEGIN" \inc "\n"
+	  ( "DEFPUSHBUTTON" \t4 string \cm ident \cm int \cm int \cm int \cm int (\cm dialogopt)OPT "\n" [defpushbutton]
+	  | "PUSHBUTTON"    \t4 string \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT "\n" [pushbutton]
+	  | "CONTROL"       \t4 (string | int) \cm (ident | int) \cm \cnl string \cm controlopt \cm int \cm int \cm int \cm int (\cm dialogopt)OPT "\n" [control]
+	  | "LISTBOX"		\t4 ident \cm int \cm int \cm int \cm int \cm dialogopt (\cm dialogopt)OPT "\n" [listbox]
+	  | "COMBOBOX"		\t4 (ident | int)\cm int \cm int \cm int \cm int \cm dialogopt "\n" [combobox]
+	  | "LTEXT"			\t4 string \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [ltext]
+	  | "CTEXT"			\t4 string \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [ctext]
+	  | "RTEXT"			\t4 string \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [rtext]
+	  | "EDITTEXT"		\t4 (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [edittext]
+	  | "ICON"			\t4 (string | int | ident) \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT "\n" [icon]
+	  | "GROUPBOX"		\t4 string \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [groupbox]
+	  ) SEQ OPT
+	  \dec "END" "\n"
+	.
+
+dialogopt : int [int] | (ident [set]| "NOT" ident [reset]) CHAIN "|" [opts] .
+controlopt : hexint [int] | (ident [set]| "NOT" ident [reset]) CHAIN "|" [opts] .
+
+vs_rules : vs_rule SEQ .
+vs_rule
+	: \s1 "FILEVERSION" int "," int "," int "," int "\n" [fileversion]
+ 	| \s1 "PRODUCTVERSION" int "," int "," int "," int "\n" [productversion]
+ 	| \s1 "FILEFLAGSMASK" hexintL "\n" [fileflagmask]
+ 	| "#ifdef" ident "\n" vs_rules ("#else" "\n" vs_rules)OPT "#endif" "\n" [ifdef]
+ 	| \s1 "FILEFLAGS" hexintL "\n" [fileflags]
+ 	| \s1 "FILEOS" hexintL "\n" [fileos]
+ 	| \s1 "FILETYPE" hexintL "\n" [filetype]
+ 	| \s1 "FILESUBTYPE" hexintL "\n" [filesubtype]
+ 	.
+vs_group
+	: "BEGIN" \inc "\n"
+	  (	"BLOCK" string "\n" vs_group [block]
+	  | "VALUE" string "," \s (string | hexint "," int [intv]) "\n" [value]
+	  ) SEQ
+	  \dec "END" "\n"
+	.
+	
+menu_group
+	: "BEGIN" \inc "\n"
+	  (	"POPUP" string "\n" menu_group [popup]
+	  | "MENUITEM" "SEPARATOR" [separator] 
+	  | "MENUITEM" string "," \t10 ident ("," \s "GRAYED" [grayed])OPT "\n" [menuitem]
+	  | "\n" [emptyline]
+	  ) SEQ
+	  \dec "END" "\n"
+	.
+    
+
+	
+
+condition1 : "defined" "(" ident ")" [defined].
+condition2 : "!" condition1 [not] | condition1 .
+condition3 : condition3 \s "&&" \s condition2 [and] | condition2 .
+condition : condition \s "||" \s condition3 [or] | condition3 .
+
+pragma_expr : int.

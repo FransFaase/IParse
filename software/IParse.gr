@@ -1,0 +1,22 @@
+root : nt_def SEQ eof.
+nt_def : ident ":" or_rule "." [nt_def].
+or_rule : rule CHAIN "|".
+rule :  opt_elem SEQ OPT ( "[" ident "]" ) OPT [rule] .
+opt_elem : list_elem "OPT" ("AVOID"[avoid]|"NONGREEDY"[nongreedy]|)[opt] 
+         | list_elem .
+list_elem : prim_elem "SEQ" ("AVOID"[avoid]|)[seq] 
+          | prim_elem "LIST" ("AVOID"[avoid]|)[list]
+          | prim_elem "CHAIN" ("AVOID"[avoid]|) string [chain] 
+          | prim_elem .
+prim_elem : string ("*"[local]) OPT [literal]
+		  | ident
+          | "ident" ">+" ident [identdefadd]
+          | "ident" ">" ident [identdef]
+          | "ident" "<" ident [identuse]
+          | "ident" "!" ident [identfield]
+          | "ident" [identalone]
+          | "{" [opencontext]
+          | "}" [closecontext]
+          | "\\" ident [wsterminal]
+          | "(" or_rule ")".
+
