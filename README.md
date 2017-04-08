@@ -1,6 +1,6 @@
 IParse
 ------
-IParse is an interpretting parser, meaning that it reads
+IParse is an interpreting parser, meaning that it reads
 a grammar and interpret this to parse another file. It
 also uses a parsing driven scanner approach, where the
 parser calls the scanner to see if a certain type of

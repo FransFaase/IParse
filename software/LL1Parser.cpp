@@ -303,7 +303,9 @@ bool LL1Parser::parse_rule(GrammarRule* rule, ParsedValue* prev_parts, const Ide
             }
 			case RK_CHARSET:
 				try_it = rule->text.char_set->contains_char(*_text);
-				if (try_it)
+				if (!_try_it)
+					expected_string("<charset>", false);
+				else
 				{	t.createCharAtom(*_text);
 					_text.next();
 					_scanner->skipSpace(_text);
@@ -426,8 +428,11 @@ bool LL1Parser::parse_seq(GrammarRule* rule, const char *chain_sym,
             	try_it = parse_ident(rule->text.ident, t);
             	break;
             case RK_NT:
+                try_it = parse_nt(rule->text.non_terminal, t);
+                break;
 			case RK_WS_NT:
                 try_it = parse_nt(rule->text.non_terminal, t);
+				t.clear();
                 break;
             case RK_LIT:
             	try_it = _scanner->acceptLiteral(_text, rule->str_value);
@@ -436,7 +441,9 @@ bool LL1Parser::parse_seq(GrammarRule* rule, const char *chain_sym,
                 break;
 			case RK_CHARSET:
 				try_it = rule->text.char_set->contains_char(*_text);
-				if (try_it)
+				if (!_try_it)
+					expected_string("<charset>", false);
+				else
 				{	t.createCharAtom(*_text);
 					_text.next();
 					_scanner->skipSpace(_text);

@@ -1139,7 +1139,9 @@ state1:
 		}
 		case RK_CHARSET:
 			_try_it = _rule->text.char_set->contains_char(*parser->_text);
-			if (_try_it)
+			if (!_try_it)
+				parser->expected_string("<charset>", false);
+			else
 			{	_t.createCharAtom(*parser->_text);
 				parser->_text.next();
 				parser->_scanner->skipSpace(parser->_text);
@@ -1353,7 +1355,8 @@ state1:
 			_state = 3; return; state3:
 			DEBUG_ENTER("Seq:done_NT");
 			_try_it = true;
-			_t = alt->result;
+			if (_rule->kind == RK_NT)
+				_t = alt->result;
 			break;
 		case RK_LIT:
             _try_it = parser->_scanner->acceptLiteral(parser->_text, _rule->str_value);
@@ -1375,7 +1378,9 @@ state1:
 			break;
 		case RK_CHARSET:
 			_try_it = _rule->text.char_set->contains_char(*parser->_text);
-			if (_try_it)
+			if (!_try_it)
+				parser->expected_string("<charset>", false);
+			else
 			{	_t.createCharAtom(*parser->_text);
 				parser->_text.next();
 				parser->_scanner->skipSpace(parser->_text);

@@ -529,7 +529,9 @@ void LL1HeapParseRuleProcess::execute()
 			}
 			case RK_CHARSET:
 				_try_it = _rule->text.char_set->contains_char(*_parser->_text);
-				if (_try_it)
+				if (!_try_it)
+					_parser->expected_string("<charset>", false);
+				else
 				{	_t.createCharAtom(*_parser->_text);
 					_parser->_text.next();
 					_parser->_scanner->skipSpace(_parser->_text);
@@ -691,6 +693,8 @@ void LL1HeapParseSeqProcess::execute()
 				_parser->call(_sub_process);
 				_state = 1; return; state1:
 				delete _sub_process;
+				if (_rule->kind == RK_WS_NT)
+					_t.clear();
 				break;
 			case RK_LIT:
             	_try_it = _parser->_scanner->acceptLiteral(_parser->_text, _rule->str_value);
@@ -699,7 +703,9 @@ void LL1HeapParseSeqProcess::execute()
 				break;
 			case RK_CHARSET:
 				_try_it = _rule->text.char_set->contains_char(*_parser->_text);
-				if (_try_it)
+				if (!_try_it)
+					_parser->expected_string("<charset>", false);
+				else
 				{	_t.createCharAtom(*_parser->_text);
 					_parser->_text.next();
 					_parser->_scanner->skipSpace(_parser->_text);

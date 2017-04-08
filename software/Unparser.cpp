@@ -918,7 +918,7 @@ void Unparser::unparse_rule_elem(const AbstractParseTree& part, GrammarRule* rul
 			unparse_or(part, rule->text.non_terminal, rule->text.non_terminal->recursive != 0);
 			break;
 		case RK_WS_NT:
-			// Do not know what to do here
+			// Do not know what to do here, as parsed element has been discarded
 			break;
 		case RK_LIT:
 			if (!rule->optional)

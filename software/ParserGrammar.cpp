@@ -441,8 +441,11 @@ void Grammar::loadGrammar(const AbstractParseTree& root)
         if (rule.isTree(id_nt_def))
         {   Ident nt_name = rule.part(1).identName();
 			
-			*ref_nt = new GrammarNonTerminal(nt_name);
-			ref_nt = &(*ref_nt)->next;
+			if (findNonTerminal(nt_name) == 0)
+			{
+				*ref_nt = new GrammarNonTerminal(nt_name);
+				ref_nt = &(*ref_nt)->next;
+			}
 		}
 	}
 

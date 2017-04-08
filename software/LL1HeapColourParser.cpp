@@ -405,7 +405,9 @@ void LL1HeapColourParseRuleProcess::execute()
 			}
 			case RK_CHARSET:
 				_try_it = _rule->text.char_set->contains_char(*_parser->_text);
-				if (_try_it)
+				if (!_try_it)
+					_parser->expected_string("<charset>", false);
+				else
 				{
 					_parser->_text.next();
 					_parser->_scanner->skipSpace(_parser->_text);
@@ -553,7 +555,9 @@ void LL1HeapColourParseSeqProcess::execute()
 				break;
 			case RK_CHARSET:
 				_try_it = _rule->text.char_set->contains_char(*_parser->_text);
-				if (_try_it)
+				if (!_try_it)
+					_parser->expected_string("<charset>", false);
+				else
 				{
 					_parser->_text.next();
 					_parser->_scanner->skipSpace(_parser->_text);
