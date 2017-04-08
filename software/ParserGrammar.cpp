@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "ParserGrammar.h"
 

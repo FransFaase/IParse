@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "TextFileBuffer.h"
 #include "Scanner.h"
 #include "AbstractParser.h"
 #include "ParParser.h"
 
-#define ASSERT_ELSE(X) if (!(X)) 
+
 
 #define DEBUG_ENTER(X) if (parser->_debug_parse) printf("Enter: %s\n", X);
 //#define DEBUG_ENTER(X) if (parser->_debug_parse) { DEBUG_TAB; printf("Enter: %s", X); parser->_depth += 2; }
@@ -301,7 +303,7 @@ public:
 	void finishCall()
 	{
 		CHECK
-		ASSERT_ELSE(_process != 0) return;
+		if (_process == 0) { assert(0); return; }
 
 		ParseProcess* parent = _process->_parent_process;
 		_process->destruct();
@@ -318,7 +320,7 @@ public:
 	inline void execute(ParParser* parser)
 	{
 		CHECK
-		ASSERT_ELSE(_process != 0) return;
+		if (_process == 0) { assert(0); return; }
 
 		_process->execute(parser, this);
 	}

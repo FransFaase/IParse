@@ -1,4 +1,5 @@
 #include "Ident.cpp"
+#include "String.cpp"
 #include "AbstractParseTree.cpp"
 #include "TextFileBuffer.cpp"
 #include "Scanner.cpp"

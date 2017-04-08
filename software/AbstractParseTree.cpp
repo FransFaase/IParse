@@ -1,173 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "Ident.h"
+#include "String.h"
 #include "malloc.h"
-
 #include "AbstractParseTree.h"
 
-#include <assert.h>
-#define ASSERT assert
-#define ASSUMING(X) if (!(X)) { assert(0); } else
-#define ASSERT_ELSE(X) assert(X); if (X) {} else 
-
-struct string_t
-{
-	string_t(const char *str) : refcount(1)
-	{
-		value = new char[strlen(str)+1];
-		strcpy(value, str);
-	}
-	string_t(const char *str, const char *till) : refcount(1)
-	{
-		size_t len = 0;
-		while (str + len != till && str[len] != '\0')
-			len++;
-		value = new char[len+1];
-		strncpy(value, str, len);
-		value[len] = '\0';
-	}
-	string_t(int len) : refcount(1)
-	{
-		value = new char[len+1];
-		memset(value, '\0', len+1);
-	}
-	~string_t() { delete value; }
-
-	long refcount;
-	char *value;
-};
-
-String::String(const char *str)
-{
-	_str = new string_t(str);
-}
-String::String(const char *str, const char *till)
-{
-	_str = new string_t(str, till);
-}
-String::String(string_t *str)
-{
-	_str = str;
-	if (_str != 0)
-		_str->refcount++;
-}
-void String::clear()
-{
-	if (_str != 0)
-	{
-		if (--_str->refcount == 0)
-			delete _str;
-		_str = 0;
-	}
-}
-String& String::operator=(const char *rhs)
-{
-	if (_str != 0 && --_str->refcount == 0)
-		delete _str;
-	_str = rhs != 0 ? new string_t(rhs) : 0;
-	return *this;
-}
-
-String& String::operator=(string_t *rhs)
-{	
-	string_t *old_str = _str;
-	_str = rhs;
-	if (_str != 0)
-		_str->refcount++;
-	if (old_str != 0 && --old_str->refcount == 0)
-		delete old_str;
-	return *this;
-}
-
-String& String::operator=(const String &rhs)
-{
-	string_t *old_str = _str;
-	_str = rhs._str;
-	if (_str != 0)
-		_str->refcount++;
-	if (old_str != 0 && --old_str->refcount == 0)
-		delete old_str;
-	return *this;
-}
-
-int String::compare(const String& rhs) const
-{	return strcmp(*this, rhs);
-}
-
-bool String::operator==(const String& rhs) const
-{	return strcmp(*this, rhs) == 0;
-}
-
-bool String::operator==(const char* rhs) const
-{	return strcmp(*this, rhs) == 0;
-}
-
-bool String::operator!=(const String& rhs) const
-{	return strcmp(*this, rhs) != 0;
-}
-
-bool String::operator>(const String& rhs) const
-{	return strcmp(*this, rhs) > 0;
-}
-
-bool String::operator<(const String& rhs) const
-{	return strcmp(*this, rhs) < 0;
-}
-
-String::operator const char*() const
-{	return _str != 0 ? _str->value : "";
-}
-
-const char* String::val() const
-{	return _str != 0 ? _str->value : 0;
-}
-
-bool String::empty() const
-{	return _str == 0;
-}
-
-String::filler::filler(String &str)
- : _str(str)
-{
-	_str.clear();
-	_alloced = 0;
-	_i = 0;
-	_closed = false;
-	_s = 0;
-}
-String::filler::~filler() { (*this) << '\0'; }
-String::filler& String::filler::operator<<(char ch)
-{
-	if (_closed)
-		return *this;
-	if (_i == 1000)
-	{
-		char *new_s = new char[_alloced+1000];
-		if (_alloced > 0)
-			strncpy(new_s, _s, _alloced);
-		strncpy(new_s + _alloced, _buffer, 1000);
-		delete _s;
-		_s = new_s;
-		_alloced += 1000;
-		_i = 0;
-	}
-	_buffer[_i++] = ch;
-	if (ch == '\0')
-	{
-		if (_alloced + _i > 1)
-		{
-			_str._str = new string_t(_alloced + _i - 1);
-			if (_alloced > 0)
-			{
-				strncpy(_str._str->value, _s, _alloced);
-				delete _s;
-			}
-			strncpy(_str._str->value + _alloced, _buffer, _i);
-		}
-		_closed = true;
-	}
-	return *this;
-}
+#include "string_t.h"
 
 struct tree_t
 {   
@@ -194,7 +33,6 @@ struct tree_t
         long   int_value;
         double double_value;
         char   char_value;
-        context_t *context;
     } c;
     int line, column;
     unsigned long refcount;
@@ -898,19 +736,19 @@ void AbstractParseTree::createList( void )
 void AbstractParseTree::createTree( const Ident name )
 {
 	release();
-	ASSERT(!name.empty());
+	assert(!name.empty());
 	_tree = new tree_t(name.val());
 }
 
 void AbstractParseTree::setTreeName( const Ident name )
 {
-	ASSERT(!name.empty());
+	assert(!name.empty());
 	_tree->type = name.val();
 }
 
 void AbstractParseTree::insertChild( const AbstractParseTree& child )
 {
-	ASSERT(_cursor == 0);
+	assert(_cursor == 0);
 
     list_t *r_list;
 
@@ -922,7 +760,7 @@ void AbstractParseTree::insertChild( const AbstractParseTree& child )
 
 void AbstractParseTree::appendChild( const AbstractParseTree& child )
 {
-	ASSERT(_cursor == 0);
+	assert(_cursor == 0);
 
     list_t **r_list = &_tree->c.parts;
 
@@ -935,7 +773,7 @@ void AbstractParseTree::appendChild( const AbstractParseTree& child )
 
 void AbstractParseTree::dropLastChild()
 {
-	ASSERT(_cursor == 0);
+	assert(_cursor == 0);
 
     list_t **r_list = &_tree->c.parts;
 
@@ -1078,7 +916,9 @@ AbstractParseTreeCursor AbstractParseTreeCursor::part(int n)
 
 	if (_cursor != 0)
 	{
-		ASSUMING(_cursor->tree->can_have_parts())
+		if(!_cursor->tree->can_have_parts())
+			assert(0);
+		else
 		{
 			list_t *parts = _cursor->tree->c.parts;
 			for (int i = 1; parts && i < n; i++)
@@ -1125,7 +965,7 @@ void AbstractParseTreeCursor::replaceBy(AbstractParseTree lhs)
 
 	if (!attached())
 	{
-		ASSERT(0); // assignment of new tree to detached cursor
+		assert(0); // assignment of new tree to detached cursor
 		return;
 	}
 
@@ -1207,7 +1047,7 @@ void AbstractParseTreeIteratorCursor::next()
 
 void AbstractParseTreeIteratorCursor::erase()
 {
-	ASSERT_ELSE(_parent != 0) return;
+	if (_parent == 0) { assert(0); return; }
 
 	_parent->make_private_copy();
 
@@ -1272,7 +1112,7 @@ void AbstractParseTreeIteratorCursor::erase()
 
 void AbstractParseTreeIteratorCursor::insert(AbstractParseTree child)
 {
-	ASSERT_ELSE(_parent != 0) return;
+	if (_parent == 0) { assert(0); return; }
 
 	_parent->make_private_copy();
 
@@ -1345,8 +1185,8 @@ void AbstractParseTreeUnitTest()
 	for (int part_nr = 1; part_nr <= 3; part_nr++)
 	{
 		AbstractParseTree part = root.part(part_nr);
-		ASSERT(part.isInt());
-		ASSERT(part.intValue() == part_nr);
+		assert(part.isInt());
+		assert(part.intValue() == part_nr);
 	}
 
 	AbstractParseTree root2(root);
@@ -1354,8 +1194,8 @@ void AbstractParseTreeUnitTest()
 	for (int part_nr = 1; part_nr <= 3; part_nr++)
 	{
 		AbstractParseTree part = root2.part(part_nr);
-		ASSERT(part.isInt());
-		ASSERT(part.intValue() == part_nr);
+		assert(part.isInt());
+		assert(part.intValue() == part_nr);
 	}
 
 	AbstractParseTreeCursor root2_cursor(root2);
@@ -1363,8 +1203,8 @@ void AbstractParseTreeUnitTest()
 	for (int part_nr = 1; part_nr <= 3; part_nr++)
 	{
 		AbstractParseTree part = root2_cursor.part(part_nr);
-		ASSERT(part.isInt());
-		ASSERT(part.intValue() == part_nr);
+		assert(part.isInt());
+		assert(part.intValue() == part_nr);
 	}
 
 	AbstractParseTreeCursor part2 = root2_cursor.part(2);
@@ -1373,15 +1213,15 @@ void AbstractParseTreeUnitTest()
 	for (int part_nr = 1; part_nr <= 3; part_nr++)
 	{
 		AbstractParseTree part = root.part(part_nr);
-		ASSERT(part.isInt());
-		ASSERT(part.intValue() == part_nr);
+		assert(part.isInt());
+		assert(part.intValue() == part_nr);
 	}
 
 	for (int part_nr = 1; part_nr <= 3; part_nr++)
 	{
 		AbstractParseTree part = root2_cursor.part(part_nr);
-		ASSERT(part.isInt());
-		ASSERT(part.intValue() == (part_nr == 2 ? 5 : part_nr));
+		assert(part.isInt());
+		assert(part.intValue() == (part_nr == 2 ? 5 : part_nr));
 	}
 
 	part2.replaceBy(root2);
@@ -1391,17 +1231,17 @@ void AbstractParseTreeUnitTest()
 		AbstractParseTree part = root2_cursor.part(part_nr);
 		if (part_nr != 2)
 		{
-			ASSERT(part.isInt());
-			ASSERT(part.intValue() == part_nr);
+			assert(part.isInt());
+			assert(part.intValue() == part_nr);
 		}
 		else
 		{
-			ASSERT(part.isList());
+			assert(part.isList());
 			for (int part_nr2 = 1; part_nr2 <= 3; part_nr2++)
 			{
 				AbstractParseTree part2 = part.part(part_nr2);
-				ASSERT(part2.isInt());
-				ASSERT(part2.intValue() == (part_nr2 == 2 ? 5 : part_nr2));
+				assert(part2.isInt());
+				assert(part2.intValue() == (part_nr2 == 2 ? 5 : part_nr2));
 			}
 		}
 	}

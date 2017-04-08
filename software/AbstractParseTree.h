@@ -1,55 +1,12 @@
 #ifndef INCLUDED_ABSTRACTPARSETREE_H
 #define INCLUDED_ABSTRACTPARSETREE_H
 
-struct string_t;
 struct tree_t;
 struct list_t;
-struct context_t;
 struct tree_cursor_t;
 
 class AbstractParseTree;
 class AbstractParseTreeIteratorCursor;
-
-class String
-{
-	friend class AbstractParseTree;
-public:
-	String() : _str(0) {}
-	String(const char *str);
-	String(const char *str, const char *till);
-	String(string_t *str);
-	String &operator=(const char *rhs);
-	String &operator=(string_t *rhs);
-	String &operator=(const String &rhs);
-	void clear();
-	int compare(const String& rhs) const;
-	bool operator==(const String& rhs) const;
-	bool operator==(const char *rhs) const;
-	bool operator!=(const String& rhs) const;
-	bool operator<(const String& rhs) const;
-	bool operator>(const String& rhs) const;
-	operator const char*() const;
-	const char *val() const;
-	bool empty() const;
-	class filler
-	{
-	public:
-		filler(String &str);
-		~filler();
-		filler& operator <<(char ch);
-	private:
-		char _buffer[1000];
-		int _alloced;
-		int _i;
-		char *_s;
-		bool _closed;
-		String &_str;
-	};
-	friend class filler;
-private:
-	string_t *_str;
-};
-
 class AbstractParseTreeCursor;
 class AbstractParseTreeIteratorCursor;
 

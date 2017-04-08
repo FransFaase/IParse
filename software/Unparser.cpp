@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "Unparser.h"
 

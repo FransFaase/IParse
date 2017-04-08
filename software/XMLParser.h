@@ -1,6 +1,7 @@
 #ifndef _INCLUDED_XMLPARSER_H
 #define _INCLUDED_XMLPARSER_H
 
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "TextFileBuffer.h"
 

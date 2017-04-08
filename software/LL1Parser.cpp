@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "TextFileBuffer.h"
 #include "Scanner.h"
@@ -303,7 +304,7 @@ bool LL1Parser::parse_rule(GrammarRule* rule, ParsedValue* prev_parts, const Ide
             }
 			case RK_CHARSET:
 				try_it = rule->text.char_set->contains_char(*_text);
-				if (!_try_it)
+				if (!try_it)
 					expected_string("<charset>", false);
 				else
 				{	t.createCharAtom(*_text);
@@ -441,7 +442,7 @@ bool LL1Parser::parse_seq(GrammarRule* rule, const char *chain_sym,
                 break;
 			case RK_CHARSET:
 				try_it = rule->text.char_set->contains_char(*_text);
-				if (!_try_it)
+				if (!try_it)
 					expected_string("<charset>", false);
 				else
 				{	t.createCharAtom(*_text);
