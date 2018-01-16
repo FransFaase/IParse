@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "Ident.h"
+#include "String.h"
 
 #include "TMX.h"
 

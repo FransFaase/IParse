@@ -14,6 +14,7 @@
 #include <assert.h>
 
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "TextFileBuffer.h"
 #include "Scanner.h"
@@ -360,6 +361,8 @@ private:
 				const char *sub_lang = subLangTree.isIdent() ? subLangTree.identName().val() : "";
 				if (strcmp(lang, "LANG_ENGLISH") == 0 && strcmp(sub_lang, "SUBLANG_ENGLISH_US") == 0)
 					_lang = "EN-US";
+				else if (strcmp(lang, "LANG_DUTCH") == 0 && strcmp(sub_lang, "SUBLANG_DUTCH") == 0)
+					_lang = "NL";
 				else if (strcmp(lang, "LANG_FRENCH") == 0 && strcmp(sub_lang, "SUBLANG_FRENCH") == 0)
 					_lang = "FR";
 				else if (strcmp(lang, "LANG_SLOVAK") == 0 && strcmp(sub_lang, "SUBLANG_SLOVAK_SLOVAKIA") == 0)
@@ -473,10 +476,13 @@ private:
 				for (AbstractParseTree::iterator it2(rule.part(3)); it2.more(); it2.next())
 				{
 					AbstractParseTree stringtableItem(it2);
-					AbstractParseTree identTree = stringtableItem.part(1);
-					AbstractParseTree contentTree = stringtableItem.part(2);
-					if (identTree.isIdent() && contentTree.isString())
-						addTransTableItem(identTree.identName(), contentTree.string());
+					if (stringtableItem.isTree("value"))
+					{
+						AbstractParseTree identTree = stringtableItem.part(1);
+						AbstractParseTree contentTree = stringtableItem.part(2);
+						if (identTree.isIdent() && contentTree.isString())
+							addTransTableItem(identTree.identName(), contentTree.string());
+					}
 				}
 			}
 		}
@@ -589,7 +595,7 @@ void compareResources(AbstractParseTree firstResource, String firstFileName, Abs
 		if (secondIt.more())
 			dictionary.add(Ident(), firstIt.identifier(), firstIt.content(), secondIt.content());
 	}
-	dictionary.establishMajorVariants();
+	//dictionary.establishMajorVariants();
 }
 
 bool findFirstTree(const AbstractParseTree& tree, Ident name, AbstractParseTree::iterator &resultIt)
@@ -1094,9 +1100,8 @@ int main(int argc, char *argv[])
 				ResourceTerminalUnparser termUnparser;
 				Unparser unparser;
 				unparser.setTerminalUnparser(&termUnparser);
-				unparser.loadGrammar(rcGrammarTree);
 				UnparseErrorCollector unparseErrorCollector(stderr);
-				unparser.prepareForUnparse(&unparseErrorCollector);
+				unparser.loadGrammarForUnparse(rcGrammarTree, &unparseErrorCollector);
 				AbstractStream<char> *outStream;
 				if (selected_output_converter == 0)
 					outStream = &charToFileStream;
@@ -1141,9 +1146,8 @@ int main(int argc, char *argv[])
 				ResourceTerminalUnparser termUnparser;
 				Unparser unparser;
 				unparser.setTerminalUnparser(&termUnparser);
-				unparser.loadGrammar(rcGrammarTree);
 				UnparseErrorCollector unparseErrorCollector(stderr);
-				unparser.prepareForUnparse(&unparseErrorCollector);
+				unparser.loadGrammarForUnparse(rcGrammarTree, &unparseErrorCollector);
 				AbstractStream<char> *outStream;
 				if (selected_output_converter == 0)
 					outStream = &charToFileStream;

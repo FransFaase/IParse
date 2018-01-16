@@ -2,6 +2,7 @@
 #define _INCLUDED_DICTIONARY_H
 
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 
 class Dictionary

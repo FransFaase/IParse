@@ -2,6 +2,7 @@
 #define _INCLUDED_TMX_H
 
 #include "Ident.h"
+#include "String.h"
 #include "AbstractParseTree.h"
 #include "Dictionary.h"
 

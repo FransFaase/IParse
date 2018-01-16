@@ -44,8 +44,8 @@ rule
 	    "BEGIN" \inc "\n"
 	    ( ident ","\s int  "\n"[value]
 	    ) SEQ
-	    \dec "END" "\n"
-	  ) CHAIN "\n"
+	    \dec "END" "\n" SEQ
+	  ) SEQ OPT
 	  \dec "END" "\n" [desinginfo]
 	| ident "TOOLBAR" ("DISCARDABLE" [discardable])OPT int "," int "\n"
 	  "BEGIN" \inc "\n"
@@ -55,7 +55,8 @@ rule
 	  \dec "END" "\n" [toolbar]
 	| "STRINGTABLE" ("PRELOAD" [preload])OPT ("DISCARDABLE" [discardable])OPT \s "\n"
 	  "BEGIN" \inc "\n"
-	  ( ident \s \stnl string "\n" [value]
+	  ( ident \s \stnl string comment OPT "\n" [value]
+	  | comment OPT "\n"
 	  ) SEQ
 	  \dec "END" "\n" [stringtable]
 	.
@@ -74,6 +75,7 @@ dialogdef
 	  | "EDITTEXT"		\t4 (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [edittext]
 	  | "ICON"			\t4 (string | int | ident) \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT "\n" [icon]
 	  | "GROUPBOX"		\t4 string \cm (ident | int) \cm int \cm int \cm int \cm int (\cm dialogopt)OPT (\cm dialogopt)OPT "\n" [groupbox]
+	  | comment OPT "\n"
 	  ) SEQ OPT
 	  \dec "END" "\n"
 	.
@@ -105,7 +107,7 @@ menu_group
 	  (	"POPUP" string "\n" menu_group [popup]
 	  | "MENUITEM" "SEPARATOR" [separator] 
 	  | "MENUITEM" string "," \t10 ident ("," \s "GRAYED" [grayed])OPT "\n" [menuitem]
-	  | "\n" [emptyline]
+	  | comment OPT "\n" [emptyline]
 	  ) SEQ
 	  \dec "END" "\n"
 	.

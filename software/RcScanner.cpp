@@ -40,7 +40,7 @@ void ResourceScanner::skipSpace(TextFileBuffer& text)
 	   characters.
 	*/
     for(;;)
-    {   if (*text == ' ' || *text == '\t')
+    {   if (*text == ' ' || *text == '\t' || *text == '\r')
         {
             text.next();
         }
