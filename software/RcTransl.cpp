@@ -595,7 +595,7 @@ void compareResources(AbstractParseTree firstResource, String firstFileName, Abs
 		if (secondIt.more())
 			dictionary.add(Ident(), firstIt.identifier(), firstIt.content(), secondIt.content());
 	}
-	//dictionary.establishMajorVariants();
+	dictionary.establishMajorVariants();
 }
 
 bool findFirstTree(const AbstractParseTree& tree, Ident name, AbstractParseTree::iterator &resultIt)
@@ -620,7 +620,7 @@ bool findFirstTree(const AbstractParseTree& tree, Ident name, AbstractParseTree:
 	return false;
 }
 
-void translateMenu(AbstractParseTreeCursor menu, Ident menu_id, Dictionary &dictionary)
+void translateMenu(AbstractParseTreeCursor menu, Ident menu_id, int &nr, Translator &translator)
 {
 	static Ident id_popup("popup");
 	static Ident id_menuitem("menuitem");
@@ -631,25 +631,30 @@ void translateMenu(AbstractParseTreeCursor menu, Ident menu_id, Dictionary &dict
 		if (menuItem.isTree(id_popup))
 		{
 			String translation;
-			if (dictionary.translate(menuItem.part(1).stringValue(), translation))
+			if (translator.translate(menuItem.part(1).stringValue(), menu_id, nr, translation))
 			{
 				menuItem.part(1).replaceBy(translation);
 			}
-			translateMenu(menuItem.part(2), menu_id, dictionary);
+			else
+				fprintf(stdout, "Warning: No translation for %s.%d\n", menu_id.val(), nr);
+			nr++;
+			translateMenu(menuItem.part(2), menu_id, nr, translator);
 		}
 		else if (menuItem.isTree(id_menuitem))
 		{
 			String translation;
-			if (dictionary.translate(menuItem.part(1).stringValue(), menu_id, menuItem.part(2).identName(), translation))
+			if (translator.translate(menuItem.part(1).stringValue(), menu_id, menuItem.part(2).identName(), translation))
 			{
 				menuItem.part(1).replaceBy(translation);
 			}
+			else
+				fprintf(stdout, "Warning: No translation for %s.%s '%s'\n", menu_id.val(), menuItem.part(2).identName().val(), menuItem.part(1).stringValue());
 		}
 	}
 }
 
 
-void translateResource(AbstractParseTree firstResource, AbstractParseTreeIteratorCursor translCursorIt, Dictionary &dictionary)
+void translateResource(AbstractParseTree firstResource, AbstractParseTreeIteratorCursor translCursorIt, Translator &translator)
 {
 	static Ident id_emptyline("emptyline");
 	static Ident id_if("if");
@@ -672,9 +677,9 @@ void translateResource(AbstractParseTree firstResource, AbstractParseTreeIterato
 				| "#ifndef" ident "\n" rules ("#else" "\n" rules)OPT "#endif" comment OPT "\n" [ifndef]
 			*/
 
-			translateResource(firstResource, translPart.part(2), dictionary);
+			translateResource(firstResource, translPart.part(2), translator);
 			if (translPart.part(3).isList())
-				translateResource(firstResource, translPart.part(3), dictionary);
+				translateResource(firstResource, translPart.part(3), translator);
 			translCursorIt.next();
 		}
 		else if (translPart.isTree(id_menu))
@@ -699,7 +704,8 @@ void translateResource(AbstractParseTree firstResource, AbstractParseTreeIterato
 					{
 						// translate
 						AbstractParseTreeCursor menu(translCursorIt);
-						translateMenu(menu.part(4), menu.part(1).identName(), dictionary);
+						int nr = 0;
+						translateMenu(menu.part(4), menu.part(1).identName(), nr, translator);
 					}
 					translCursorIt.next();
 				}
@@ -729,7 +735,8 @@ void translateResource(AbstractParseTree firstResource, AbstractParseTreeIterato
 						AbstractParseTreeCursor dialog(translCursorIt);
 						Ident dialog_id = dialog.part(1).identName();
 						int itemspart = dialogFromFirst.isTree(id_dialog) ? 11 : 12;
-						for (AbstractParseTreeIteratorCursor itemIt(dialog.part(itemspart)); itemIt.more(); itemIt.next())
+						int nr = 0;
+						for (AbstractParseTreeIteratorCursor itemIt(dialog.part(itemspart)); itemIt.more(); itemIt.next(), nr++)
 						{
 							AbstractParseTreeCursor item(itemIt);
 							int string_pos = 0;
@@ -804,11 +811,15 @@ void translateResource(AbstractParseTree firstResource, AbstractParseTreeIterato
 							{
 								String translation;
 								if (  item_id.empty()
-									? dictionary.translate(item.part(string_pos).stringValue(), translation)
-									: dictionary.translate(item.part(string_pos).stringValue(), dialog_id, item_id, translation))
+									? translator.translate(item.part(string_pos).stringValue(), dialog_id, nr, translation)
+									: translator.translate(item.part(string_pos).stringValue(), dialog_id, item_id, translation))
 								{
 									item.part(string_pos).replaceBy(translation);
 								}
+								else if (item_id.empty())
+									fprintf(stdout, "Warning: No translation for %s.%d '%s'\n", dialog_id.val(), nr, item.part(string_pos).stringValue());
+								else
+									fprintf(stdout, "Warning: No translation for %s.%s '%s'\n", dialog_id.val(), item_id.val(), item.part(string_pos).stringValue());
 							}
 						}
 					}
@@ -841,11 +852,17 @@ void translateResource(AbstractParseTree firstResource, AbstractParseTreeIterato
 						for (AbstractParseTreeIteratorCursor itemIt(stringtable.part(3)); itemIt.more(); itemIt.next())
 						{
 							AbstractParseTreeCursor item(itemIt);
-							ASSERT(item.isTree(id_value) && item.nrParts() == 2);
-							String translation;
-							if (dictionary.translate(item.part(2).stringValue(), Ident(), item.part(1).identName(), translation))
+							if (!item.isEmpty())
 							{
-								item.part(2).replaceBy(translation);
+								ASSERT(item.isTree(id_value) && item.nrParts() >= 2);
+								String translation;
+								if (translator.translate(item.part(2).stringValue(), item.part(1).identName(), translation))
+								{
+									item.part(2).replaceBy(translation);
+								}
+								else
+									fprintf(stdout, "Warning: No translation for %s\n", item.part(1).identName().val());
+
 							}
 						}
 					}
@@ -856,69 +873,6 @@ void translateResource(AbstractParseTree firstResource, AbstractParseTreeIterato
 		else
 			translCursorIt.next();
 	}
-}
-
-void translateResource(AbstractParseTree firstResource, AbstractParseTree secondResource, Dictionary &dictionary, AbstractParseTree &translResource)
-{
-	
-	translResource = secondResource;
-	AbstractParseTreeCursor translResourceCursor(translResource);
-	AbstractParseTreeIteratorCursor translResourceItCur(translResourceCursor);
-	
-	translateResource(firstResource, translResourceItCur, dictionary);
-
-	/*
-	// Copy first part (till first menu definition) of second resource file to translated resource file
-	AbstractParseTree::iterator secondIt(secondResource);
-	for (; secondIt.more(); secondIt.next())
-	{
-		AbstractParseTree line(secondIt);
-		if (line.isTree(id_menu))
-			break;
-		translResource.appendChild(line);
-	}
-	// Find first menu definition in first resource
-	AbstractParseTree::iterator firstIt(secondResource);
-	for (; firstIt.more(); firstIt.next())
-	{
-		AbstractParseTree line(firstIt);
-		if (line.isTree(id_menu))
-			break;
-	}
-
-	Ident id_comment("comment");
-
-	translResource = firstResource;
-	AbstractParseTreeCursor translResourceCursor(translResource);
-	AbstractParseTreeIteratorCursor translResourceItCur(translResourceCursor);
-
-	AbstractParseTree::iterator secondIt(secondResource);
-
-	// Find comment with language name
-	for (; translResourceItCur.more(); translResourceItCur.next())
-	{
-		AbstractParseTreeCursor line(translResourceItCur);
-		if (line.isTree(id_comment) && line.part(1).isString())
-		{
-			const char* comment = line.part(1).stringValue();
-			if (strstr(comment, " resources") != 0)
-				break;
-		}
-	}
-	if (!translResourceItCur.more()) { assert(0); return; }
-	for (; secondIt.more(); secondIt.next())
-	{
-		AbstractParseTree line(secondIt);
-		if (line.isTree(id_comment) && line.part(1).isString())
-		{
-			const char* comment = line.part(1).stringValue();
-			if (strstr(comment, " resources") != 0)
-				break;
-		}
-	}
-	if (!translResourceItCur.more()) { assert(0); return; }
-	AbstractParseTreeCursor(translResourceItCur).replaceBy(secondIt);
-	*/
 }
 
 class UnparseErrorCollector : public AbstractUnparseErrorCollector
@@ -1093,9 +1047,11 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "Error: cannot open %s for writing\n", file_name);
 			else
 			{
-				AbstractParseTree translResource;
-				translateResource(firstResource, secondResource, dictionary, translResource);
-
+				AbstractParseTree translResource = secondResource.isEmpty() ? firstResource : secondResource;
+				AbstractParseTreeCursor translResourceCursor(translResource);
+				AbstractParseTreeIteratorCursor translResourceItCur(translResourceCursor);
+				if (!dictionary.empty())
+					translateResource(firstResource, translResourceItCur, dictionary);
 				CharStreamToFile charToFileStream(fout, false);
 				ResourceTerminalUnparser termUnparser;
 				Unparser unparser;
@@ -1241,6 +1197,11 @@ int main(int argc, char *argv[])
 			}
 			TMX::loadFromOmegaT(f, dictionary);
 			fclose(f);
+		}
+		else
+		{
+			fprintf(stderr, "Error: cannot process %s\n", arg);
+			return 0;
 		}
 	}
 

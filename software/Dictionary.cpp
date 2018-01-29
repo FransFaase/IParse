@@ -137,23 +137,24 @@ void Dictionary::establishMajorVariants()
 
 void Dictionary::printMultiple(FILE *fout)
 {
-	for (Entry* entry = _entries; entry != 0; entry = entry->next)
+	for (EntryIterator entryIterator(*this); entryIterator.more(); entryIterator.next())
 	{
-		if (entry->variants != 0 && entry->variants->next != 0)
+		if (entryIterator.hasVariants())
 		{
-			fprintf(fout, "|%s|\n", entry->from_text.val());
-			for (Variant* variant = entry->variants; variant != 0; variant = variant->next)
+			fprintf(fout, "|%s|\n", entryIterator.fromText().val());
+			for (VariantIterator variantIterator(entryIterator, /*include major=*/true); variantIterator.more(); variantIterator.next())
 			{
-				fprintf(fout, "=> |%s| at ", variant->to_text.val());
+				fprintf(fout, "=> |%s| at ", variantIterator.toText().val());
 				bool first = true;
-				for (Example* example = variant->examples; example != 0; example = example->next)
+				for (Dictionary::ExampleIterator exampleIterator(variantIterator); exampleIterator.more(); exampleIterator.next())
 				{
 					if (first)
 						first = false;
 					else
 						fprintf(fout, ", ");
-					fprintf(fout, "%s.%s", example->section.val(), example->item.val());
+					fprintf(fout, "%s.%s", exampleIterator.section().val(), exampleIterator.item().val());
 				}
+				fprintf(fout, "\n");
 			}
 		}
 	}
@@ -179,6 +180,11 @@ const String Dictionary::EntryIterator::fromText()
 	return _entry->from_text;
 }
 
+bool Dictionary::EntryIterator::hasVariants()
+{
+	return _entry->variants != 0 && _entry->variants->next != 0;
+}
+
 bool Dictionary::EntryIterator::hasMajorVariant()
 {
 	return _entry->major_variant != 0;
@@ -189,9 +195,9 @@ const String& Dictionary::EntryIterator::majorToText()
 	return _entry->major_variant->to_text;
 }
 
-Dictionary::VariantIterator::VariantIterator(const EntryIterator& entryIterator)
+Dictionary::VariantIterator::VariantIterator(const EntryIterator& entryIterator, bool include_major)
 {
-	_major_variant = entryIterator._entry->major_variant;
+	_major_variant = include_major ? 0 : entryIterator._entry->major_variant;
 	_variant = entryIterator._entry->variants;
 	if (_variant != 0 && _variant == _major_variant)
 		_variant = _variant->next;
@@ -239,7 +245,7 @@ const Ident Dictionary::ExampleIterator::item()
 	return _example->item;
 }
 
-bool Dictionary::translate(const String& from_text, String &to_text)
+bool Dictionary::translate(const String& from_text, String &to_text) const
 {
 	for (Dictionary::EntryIterator entryIterator(*this); entryIterator.more(); entryIterator.next())
 	{
@@ -256,7 +262,7 @@ bool Dictionary::translate(const String& from_text, String &to_text)
 	return false;
 }
 
-bool Dictionary::translate(const String& from_text, Ident section, Ident item, String &to_text)
+bool Dictionary::translate(const String& from_text, Ident section, Ident item, String &to_text) const
 {
 	for (Dictionary::EntryIterator entryIterator(*this); entryIterator.more(); entryIterator.next())
 	{
@@ -283,6 +289,18 @@ bool Dictionary::translate(const String& from_text, Ident section, Ident item, S
 	}
 	fprintf(stderr, "No translation for |%s| for %s %s\n", from_text.val(), section.val(), item.val());
 	return false;
+}
+
+bool
+Dictionary::translate(const String& from_text, Ident item, String &to_text) const
+{
+	return translate(from_text, Ident(), item, to_text);
+}
+
+bool
+Dictionary::translate(const String& from_text, Ident section, int nr, String &to_text) const
+{
+	return translate(from_text, to_text);
 }
 
 
