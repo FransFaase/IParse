@@ -86,4 +86,4 @@ const char* Ident::ident_unify(const char* id) const
 	}
 }
 
-char* Ident::_empty = "";
+const char* Ident::_empty = "";

@@ -355,7 +355,7 @@ public:
 	}
 
 	int alt_id;
-	char *cr_text;
+	const char *cr_text;
 	GrammarRule* cr_grammar_rule;
 
 private:

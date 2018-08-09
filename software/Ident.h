@@ -52,7 +52,7 @@ public:
 
 private:
 	const char *_id;
-	static char *_empty;
+	static const char *_empty;
 
 	const char* ident_unify(const char* id) const;
 };

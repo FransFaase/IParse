@@ -5,35 +5,23 @@
 #include "String.h"
 #include "AbstractParseTree.h"
 
-class Translator
-{
-public:
-	virtual bool translate(const String& from_text, String &to_text) const = 0;
-	virtual bool translate(const String& from_text, Ident item, String &to_text) const = 0;
-	virtual bool translate(const String& from_text, Ident section, Ident item, String &to_text) const = 0;
-	virtual bool translate(const String& from_text, Ident section, int nr, String &to_text) const = 0;
-};
-
-class Dictionary : public Translator
+class Dictionary
 {
 public:
 	Dictionary();
 	~Dictionary();
-	bool empty() { return _entries == 0; }
 	void clear();
 	void setLanguages(const String& from_lang, const String& to_lang);
-	virtual void add(const String& from_text, const String& to_text);
-	virtual void add(const Ident& section, const Ident& item, const String& from_text, const String& to_text);
+	void add(const String& from_text, const String& to_text);
+	void add(const Ident& section, const Ident& item, const String& from_text, const String& to_text);
 	void establishMajorVariants();
 	void printMultiple(FILE *fout);
 
 	const String& fromLang() const { return _from_lang; }
 	const String& toLang() const { return _to_lang; }
 
-	bool translate(const String& from_text, String &to_text) const;
-	bool translate(const String& from_text, Ident item, String &to_text) const;
-	bool translate(const String& from_text, Ident section, Ident item, String &to_text) const;
-	bool translate(const String& from_text, Ident section, int nr, String &to_text) const;
+	bool translate(const String& from_text, String &to_text);
+	bool translate(const String& from_text, Ident section, Ident item, String &to_text);
 
 	struct Entry;
 	struct Variant;
@@ -48,7 +36,6 @@ public:
 		bool more();
 		void next();
 		const String fromText();
-		bool hasVariants();
 		bool hasMajorVariant();
 		const String& majorToText();
 	private:
@@ -60,7 +47,7 @@ public:
 	{
 		friend class ExampleIterator;
 	public:
-		VariantIterator(const EntryIterator& entryIterator, bool include_major = false);
+		VariantIterator(const EntryIterator& entryIterator);
 		bool more();
 		void next();
 		const String& toText();

@@ -1,5 +1,5 @@
 
-#define VERSION "1.7 of April 9, 2015."
+#define VERSION "1.7 of April 20, 2018."
 
 /* 
 	First some standard definitions.
@@ -373,6 +373,12 @@ void init_IParse_grammar( AbstractParseTree& root )
           NONE CLOSE CLOSE 
         NONE CLOSE CLOSE CLOSE CLOSE 
 	root = tt[0];
+#undef NONE
+#undef ID
+#undef VAL
+#undef TREE
+#undef LIST
+#undef CLOSE
 }
 
 
@@ -401,8 +407,7 @@ struct context_entry_t
 
 
 int main(int argc, char *argv[])
-{   int i;
-
+{
 	bool debug_nt = false;
 	bool debug_parse = false;
 	bool debug_scan = false;
@@ -442,8 +447,10 @@ int main(int argc, char *argv[])
 			   "   -Raw        use raw scanner\n"
 			   "   -Bare       use bare scanner\n"
 			   "   -p <fn>     print parse tree\n"
+			   "   -pc <fn>    print parse tree (compact)\n"
                "   -xml <fn>   output parse tree as XML\n"
-               "   -o <fn>     ouput tree to C file\n"
+               "   -o <fn>     output tree to C file\n"
+			   "   -oac <fn>   output grammar to C file\n"
 			   "   -unparse <fn> unparses the parse tree\n"
                "   +ds         debug scanning (full)\n"
                //"   +dss      debug scanning (normal)\n"
@@ -471,7 +478,7 @@ int main(int argc, char *argv[])
 	AbstractParseTree tree;
 	init_IParse_grammar(tree);
 
-    for (i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++)
     {   char *arg = argv[i];
  
         if (!strcmp(arg, "-s"))
@@ -580,6 +587,27 @@ int main(int argc, char *argv[])
                     *dot = '\0';
 
                 print_tree_to_c(fout, tree, file_name);
+                fclose(fout);
+            }
+            else
+            {   printf("Cannot open: %s\n", file_name);
+                return 0;
+            }
+        }
+        else if (!strcmp(arg, "-oac"))
+        {   
+            char *file_name = argv[++i];
+            FILE *fout = !strcmp(file_name, "-") 
+                         ? stdout : fopen(file_name, "wt");
+
+            if (fout != 0)
+            {   char *dot = strstr(file_name, ".");
+                if (dot)
+                    *dot = '\0';
+
+				Grammar grammar;
+				grammar.loadGrammar(tree);
+				grammar.outputGrammarAsCode(fout, file_name);
                 fclose(fout);
             }
             else

@@ -84,6 +84,21 @@ public:
 	void add_range(unsigned char from, unsigned char to);
 	inline void remove_char(unsigned char ch) { _range[ch >> 5] &= ~(1 << (ch & 0x01f)); }
 	inline bool contains_char(unsigned char ch) const { return (_range[ch >> 5] & (1 << (ch & 0x01f))) != 0; }
+	class RangeIterator
+	{
+	public:
+		RangeIterator(GrammarCharSet& char_set) : _char_set(char_set), _ch(0) { next(); }
+		inline bool more() { return _more; }
+		inline int from() { return _from; }
+		inline int to() { return _to; }
+		void next();
+	private:
+		GrammarCharSet& _char_set;
+		bool _more;
+		int _ch;
+		int _from;
+		int _to;
+	};
 private:
 	long _range[8];
 };
@@ -173,6 +188,7 @@ public:
 };
 
 class GrammarLiteral;
+class CodeGenerator;
 
 class Grammar
 {
@@ -181,9 +197,11 @@ public:
 	void loadGrammar(const AbstractParseTree& root);
 	void loadGrammarForUnparse(const AbstractParseTree& root, AbstractUnparseErrorCollector *unparseErrorCollector);
 	GrammarNonTerminal* findNonTerminal(Ident name);
+	GrammarNonTerminal* addNonTerminal(Ident name);
 	GrammarTerminal* findTerminal(Ident name);
 	void addLiteral(Ident literal);
 	bool isLiteral(Ident literal);
+	void outputGrammarAsCode(FILE* fout, const char* name);
 
 private:
 	class CombinedRule
@@ -204,7 +222,73 @@ private:
 	GrammarTerminal* _all_t;
 	GrammarLiteral* _all_l;
 	bool _for_unparse;
+	void outputCodeFor(GrammarOrRule* or_rule, CodeGenerator &codeGenerator);
 };
+
+class GrammarLoader
+{
+public:
+	GrammarLoader(Grammar *grammar) : _grammar(grammar), _c(0), _nt(0) {}
+
+protected:
+	void nt_def(const char* name);
+	void nt(const char* name);
+	void term(const char* name);
+	void lit(const char* sym, bool local = false);
+	void ws_nt(const char* name);
+	void ws(const char* name);
+	void charset();
+	void add_char(unsigned char ch);
+	void add_range(unsigned char from, unsigned char to);
+	void add_any();
+	void remove_char(unsigned char ch);
+	void eof();
+	void chain(const char* sym);
+	void seq();
+	void opt();
+	void avoid();
+	void nongreedy();
+	void open(bool combined = false);
+	void or();
+	void close();
+	void rec_or();
+	void tree(const char* name);
+	void pos(int line, int column);
+
+private:
+	void _new_elem();
+	GrammarNonTerminal* _nt;
+	struct Context
+	{
+		Context() : ref_or_rule(0), ref_rule(0) {}
+		GrammarOrRule** ref_or_rule;
+		GrammarOrRule* or_rule;
+		GrammarRule** ref_rule;
+		GrammarRule* rule;
+	};
+	Context _contexts[50];
+	Context* _c;
+	GrammarOrRule** _ref_rec_or_rule;
+	Grammar *_grammar;
+};
+
+//#define IMPLEMENTED_GRAMMAR_LOADER_FOR_APT
+#ifdef IMPLEMENTED_GRAMMAR_LOADER_FOR_APT // work in progress
+class GrammarLoaderForAPT : public GrammarLoader
+{
+pubic:
+	GrammarLoader(Grammar* grammar) : GrammarLoader(grammar) {}
+	void load(const AbstractParseTree& root);
+	void loadForUnparse(const AbstractParseTree& root);
+private:
+	void make_rule(AbstractParseTree::iterator rule);
+	void make_rule(CombinedRule* rules);
+	bool equivalent(const AbstractParseTree& lhs, const AbstractParseTree& rhs);
+	void make_or_rule(AbstractParseTree::iterator or_rule);
+	void make_char_set(AbstractParseTree char_set_rule, GrammarCharSet *char_set);
+};
+#endif
+
 
 #endif // _INCLUDED_PARSERGRAMMAR_H
 
