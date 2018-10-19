@@ -45,7 +45,7 @@ void BasicScanner::skipSpace(TextFileBuffer& text)
 	   characters.
 	*/
 	for(;;)
-	{   if (*text == ' ' || *text == '\t' || text[0] == '\n')
+	{   if (*text == ' ' || *text == '\t' || text[0] == '\n' || text[0] == '\r')
 		{
 			text.next();
 		}
@@ -449,7 +449,7 @@ bool WhiteSpaceScanner::accept_whitespace(TextFileBuffer& text, AbstractParseTre
 	   characters.
 	*/
 	for(;;)
-	{   if (*text == ' ' || *text == '\t' || text[0] == '\n')
+	{   if (*text == ' ' || *text == '\t' || text[0] == '\n' || text[0] == '\r')
 		{
 			filler << *text;
 			text.next();

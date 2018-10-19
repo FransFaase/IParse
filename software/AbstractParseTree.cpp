@@ -147,7 +147,7 @@ void tree_t::release()
 
 void tree_t::print(FILE *f, bool compact)
 {
-	static long print_tree_depth = 0;
+	static int print_tree_depth = 0;
     if (this == 0)
     	fprintf(f, "[EMPTY]");
     else 
@@ -171,7 +171,7 @@ void tree_t::print(FILE *f, bool compact)
 			fprintf(f, "\"");
 		}
 	    else if (type == tt_int_value)
-    	    fprintf(f, "%d", c.int_value);
+    	    fprintf(f, "%ld", c.int_value);
     	else if (type == tt_double_value)
     	    fprintf(f, "%f", c.double_value);
     	else if (type == tt_char_value)

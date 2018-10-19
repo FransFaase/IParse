@@ -63,7 +63,7 @@ public:
 	}
 	void print()
 	{
-		printf("Allocator %s: allocated = %d. freed = %d, left = %d, count = %d, reused = %d\n",
+		printf("Allocator %s: allocated = %ld. freed = %ld, left = %ld, count = %ld, reused = %ld\n",
 			_name, _allocated, _freed, _allocated - _freed, _count, _reused);
 	}
 private:

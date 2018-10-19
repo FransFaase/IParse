@@ -47,7 +47,7 @@ void GrammarRule::print(FILE *f)
     if (this == 0)
         return;
 
-	fprintf(f, "[%d.%d]", line, column); 
+	fprintf(f, "[%ld.%ld]", line, column); 
     switch(kind)
     {   case RK_T_EOF:
             fprintf(f, "<eof> ");

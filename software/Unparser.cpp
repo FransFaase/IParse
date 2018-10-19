@@ -160,7 +160,7 @@ void BasicTerminalUnparser::unparse(Ident terminal, const AbstractParseTree& tre
 			if (_state == 'a')
 				_stream.emit(' ');
 			char buffer[20];
-			sprintf(buffer, "%d", tree.intValue());
+			sprintf(buffer, "%ld", tree.intValue());
 			for (const char *s = buffer; *s != '\0'; s++)
 				_stream.emit(*s);
 			_state = '1';
@@ -380,7 +380,7 @@ void ResourceTerminalUnparser::unparse(Ident terminal, const AbstractParseTree& 
 			if (_state == 'a')
 				_stream.emit(' ');
 			char buffer[20];
-			sprintf(buffer, "%d", tree.intValue());
+			sprintf(buffer, "%ld", tree.intValue());
 			for (const char *s = buffer; *s != '\0'; s++)
 				_stream.emit(*s);
 			_state = '1';
@@ -395,7 +395,7 @@ void ResourceTerminalUnparser::unparse(Ident terminal, const AbstractParseTree& 
 			if (_state == 'a')
 				_stream.emit(' ');
 			char buffer[20];
-			sprintf(buffer, "0x%x", tree.intValue());
+			sprintf(buffer, "0x%lx", tree.intValue());
 			for (const char *s = buffer; *s != '\0'; s++)
 				_stream.emit(*s);
 			if (terminal == id_hexintL)

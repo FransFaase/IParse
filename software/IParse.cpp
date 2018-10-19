@@ -121,10 +121,10 @@ static void print_tree_rec( FILE *f, const AbstractParseTree& tree )
     {    fprintf(f, "VAL(\"%s\") ", tree.stringValue());
     }
     else if (tree.isInt())
-    {    fprintf(f, "VAL(%d) ", tree.intValue());
+    {    fprintf(f, "VAL(%ld) ", tree.intValue());
     }
     else if (tree.isDouble())
-    {    fprintf(f, "VAL((double)%f) ", tree.doubleValue());
+    {    fprintf(f, "VAL((double)%lf) ", tree.doubleValue());
     }
     else if (tree.isChar())
     {    fprintf(f, "VAL('%c') ", tree.charValue());
@@ -182,7 +182,7 @@ static void print_tree_to_xml( FILE *f, const AbstractParseTree& tree )
     	fprintf(f, "</STRING>");
     }
     else if (tree.isInt())
-    	fprintf(f, "<INT>%d</INT>", tree.intValue());
+    	fprintf(f, "<INT>%ld</INT>", tree.intValue());
     else if (tree.isDouble())
 		fprintf(f, "<DOUBLE>%f</DOUBLE>", tree.doubleValue());
     else if (tree.isChar())
@@ -210,7 +210,7 @@ static void print_tree_to_xml( FILE *f, const AbstractParseTree& tree )
 	        if (tree.isList())
 	            fprintf(f, "</LIST>");
 	        else
-	            fprintf(f, "</TREE>", tree.type());
+	            fprintf(f, "</TREE>");
 	    }
 	    else
 	    {
@@ -441,7 +441,7 @@ int main(int argc, char *argv[])
 			   "   -Par        use parallel parser\n"
 			   "   -WhiteSpace use white space scanner\n"
 			   "   -Protos     use Protos scanner\n"
-			   "   -Resource   use Pesource scanner\n"
+			   "   -Resource   use Resource scanner\n"
 			   "   -Pascal     use Pascal scanner\n"
 			   "   -ColourCoding use colour coding scanner\n"
 			   "   -Raw        use raw scanner\n"
@@ -651,7 +651,7 @@ int main(int argc, char *argv[])
 				Unparser unparser;
 				if (use_scanner == constResource)
 					unparser.setTerminalUnparser(&resourceTerminalUnparser);
-				else if (use_scanner = constWhiteSpace)
+				else if (use_scanner == constWhiteSpace)
 					unparser.setTerminalUnparser(&whiteSpaceTerminalUnparser);
 				else
 					unparser.setTerminalUnparser(&basicTerminalUnparser);
@@ -677,7 +677,7 @@ int main(int argc, char *argv[])
 					{
 						if (rule != 0)
 						{
-							fprintf(_f, "\t%d.%d ", rule->line, rule->column);
+							fprintf(_f, "\t%ld.%ld ", rule->line, rule->column);
 							rule->print(_f);
 							fprintf(_f, "\n");
 						}

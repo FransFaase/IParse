@@ -630,7 +630,10 @@ bool BTParser::parse(const TextFileBuffer& textBuffer, Ident root_id, AbstractPa
 
 	_scanner->initScanning(this);
 	_scanner->skipSpace(_text);
-	bool try_it = parse_nt(findNonTerminal(root_id), result);
+	GrammarNonTerminal* root = findNonTerminal(root_id);
+	if (root == 0)
+	    return false;
+	bool try_it = parse_nt(root, result);
 
 	free_solutions();
 		
