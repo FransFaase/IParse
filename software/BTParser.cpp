@@ -203,11 +203,6 @@ bool BTParser::parse_rule(GrammarRule* rule, ParsedValue* prev_parts, const Iden
     DEBUG_ENTER("parse_rule: ");
     DEBUG_PR(rule); DEBUG_NL;
 
-	if (rule != 0 && rule->line == 189)
-	{
-		int i = 1;
-	}
-
     /* At the end of the rule: */
     if (rule == 0)
     {   if (!tree_name.empty())
