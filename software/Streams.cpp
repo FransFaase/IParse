@@ -1,5 +1,9 @@
 #include <stdio.h>
+#ifdef WIN32
 #include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #include "Streams.h"
 

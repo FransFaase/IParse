@@ -30,7 +30,8 @@ Installing
 ----------
 
 On Linux just compile all_IParse.cpp, which includes all
-source files, with g++ into IParse executable.
+source files, with g++ into IParse executable, using the
+`-fno-operator-names` switch if needed.
 
 On Windows use A Visual C++ 2008 Express Edition with
 IParse.sln file.
