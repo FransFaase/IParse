@@ -2,7 +2,7 @@
 #ifdef WIN32
 #include <io.h>
 #else
-#include <unistd.h>
+#include <sys/io.h>
 #endif
 
 #include "Streams.h"
