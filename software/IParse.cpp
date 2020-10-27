@@ -548,7 +548,7 @@ int main(int argc, char *argv[])
 		{
 			use_scanner = constBare;
 		}
-        else if (!strcmp(arg, "-p"))
+        else if (!strcmp(arg, "-p") && i + 1 < argc)
         {   
             char *file_name = argv[++i];
             FILE *fout = !strcmp(file_name, "-") 

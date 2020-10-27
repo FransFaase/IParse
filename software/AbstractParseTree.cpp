@@ -120,9 +120,6 @@ bool tree_t::can_have_parts()
 
 void tree_t::release()
 {
-    if (this == 0)
-        return;
-
 	//printf("%8X -- (%d) ", tree, tree->refcount-1);
 	//SContext::print(stdout);
 	//printf("\n");
@@ -136,7 +133,8 @@ void tree_t::release()
 
             while (list != 0)
             {   list_t *next = list->next;
-				list->first->release();
+				if (list->first != 0)
+					list->first->release();
                 delete list;
                 list = next;
             }
@@ -148,64 +146,62 @@ void tree_t::release()
 void tree_t::print(FILE *f, bool compact)
 {
 	static int print_tree_depth = 0;
-    if (this == 0)
-    	fprintf(f, "[EMPTY]");
-    else 
-    {
-    	if (line != 0)
-			fprintf(f, "<%d:%d>", line, column);
- 		if (type == tt_ident)
-    		fprintf(f, "%s", c.ident);
-    	else if (type == tt_str_value)
+	if (line != 0)
+		fprintf(f, "<%d:%d>", line, column);
+	if (type == tt_ident)
+		fprintf(f, "%s", c.ident);
+	else if (type == tt_str_value)
+	{
+		fprintf(f, "\"");
+		for (const char *s = c.str_value != 0 ? c.str_value->value : ""; *s != '\0'; s++)
 		{
-			fprintf(f, "\"");
-			for (const char *s = c.str_value != 0 ? c.str_value->value : ""; *s != '\0'; s++)
-			{
-				if (*s == '\n')
-					fprintf(f, "\\n");
-				else if (*s == '\t')
-					fprintf(f, "\\t");
-				else
-					fprintf(f, "%c", *s);
-			}
-			fprintf(f, "\"");
+			if (*s == '\n')
+				fprintf(f, "\\n");
+			else if (*s == '\t')
+				fprintf(f, "\\t");
+			else
+				fprintf(f, "%c", *s);
 		}
-	    else if (type == tt_int_value)
-    	    fprintf(f, "%ld", c.int_value);
-    	else if (type == tt_double_value)
-    	    fprintf(f, "%f", c.double_value);
-    	else if (type == tt_char_value)
-    	    fprintf(f, "'%c'", c.char_value);
-    	else if (type == tt_opencontext)
-    	{   fprintf(f, "{");
-    		//print_context(f, tree->c.context, compact);
-    	}
-    	else if (type == tt_closecontext)
-    		fprintf(f, "}");
-    	else
-    	{    
-        	fprintf(f, "%s(", type);
-       
-        	print_tree_depth += strlen(type) + 1;
+		fprintf(f, "\"");
+	}
+    else if (type == tt_int_value)
+	    fprintf(f, "%ld", c.int_value);
+	else if (type == tt_double_value)
+	    fprintf(f, "%f", c.double_value);
+	else if (type == tt_char_value)
+	    fprintf(f, "'%c'", c.char_value);
+	else if (type == tt_opencontext)
+	{   fprintf(f, "{");
+		//print_context(f, tree->c.context, compact);
+	}
+	else if (type == tt_closecontext)
+		fprintf(f, "}");
+	else
+	{    
+    	fprintf(f, "%s(", type);
+   
+    	print_tree_depth += strlen(type) + 1;
 
-			bool first = true;
-			for (list_t *list = c.parts; list != 0; list = list->next)
-			{   
-    			if (!first)
-				{   if (compact)
-						fprintf(f, ",");
-					else 
-						fprintf(f, ",\n%*s", print_tree_depth, "");
-				}
-				first = false;
-				/* fprintf(f, "[%lx]", (longword)l); */
-				list->first->print(f, compact);
+		bool first = true;
+		for (list_t *list = c.parts; list != 0; list = list->next)
+		{   
+			if (!first)
+			{   if (compact)
+					fprintf(f, ",");
+				else 
+					fprintf(f, ",\n%*s", print_tree_depth, "");
 			}
+			first = false;
+			/* fprintf(f, "[%lx]", (longword)l); */
+			if (list->first == 0)
+				fprintf(f, "[EMPTY]");
+			else
+				list->first->print(f, compact);
+		}
 
-			print_tree_depth -= strlen(type) + 1;
-        	fprintf(f, ")");
-    	}
-    }
+		print_tree_depth -= strlen(type) + 1;
+    	fprintf(f, ")");
+	}
 }
 
 list_t *list_t::_old = 0;
@@ -240,14 +236,12 @@ void tree_t::assign(tree_t *&d, tree_t *s)
 	//SContext::print(stdout);
 	//printf("\n");
   }
-  old_d->release();
+  if (old_d != 0)
+    old_d->release();
 }
 
 tree_t *tree_t::clone()
 {
-	if (this == 0)
-		return 0;
-
 	tree_t *result = 0;
 	if (type == tt_ident)
 		result = new tree_t(c.ident);
@@ -437,18 +431,16 @@ void tree_cursor_t::assign(tree_t *new_tree)
 	for (AbstractParseTreeCursor *cursor = cursors; cursor != 0; cursor = cursor->_next)
 		cursor->_tree = tree;
 
-	old_tree->release();
+	if (old_tree != 0)
+		old_tree->release();
 }
 
 bool tree_cursor_t::make_private_copy()
 {
-	if (this == 0)
+	if ((parent == 0 || !parent->make_private_copy()) && (tree == 0 || tree->refcount == 1))
 		return false;
 
-	if (!parent->make_private_copy() && (tree == 0 || tree->refcount == 1))
-		return false;
-
-	assign(tree->clone());
+	assign(tree == 0 ? 0 : tree->clone());
 
 	// fix all cursor iterators
 	for (AbstractParseTreeIteratorCursor *iterator_cursor = iterator_cursors; iterator_cursor != 0; iterator_cursor = iterator_cursor->_next)
@@ -598,7 +590,10 @@ int AbstractParseTreeBase::column() const
 
 void AbstractParseTreeBase::print( FILE *f, bool compact ) const
 {
-	_tree->print(f, compact);
+	if (_tree == 0)
+		fprintf(f, "[EMPTY]");
+	else
+		_tree->print(f, compact);
 
     if (!compact)
     	fprintf(f, "\n");
@@ -663,7 +658,8 @@ AbstractParseTree AbstractParseTree::makeTree(const Ident name)
 
 void AbstractParseTree::clear()
 {
-	_tree->release();
+	if (_tree != 0)
+		_tree->release();
 	_tree = 0;
 }
 void AbstractParseTree::attach(AbstractParseTree& treeRef)
@@ -671,12 +667,14 @@ void AbstractParseTree::attach(AbstractParseTree& treeRef)
 	tree_t *old_tree = _tree;
 	_tree = treeRef._tree;
 	treeRef._tree = 0;
-	old_tree->release();
+	if (old_tree != 0)
+		old_tree->release();
 }
 
 void AbstractParseTree::release()
 {
-	_tree->release();
+	if (_tree != 0)
+		_tree->release();
 	_tree = 0;
 	if (_cursor != 0)
 	{
@@ -971,7 +969,8 @@ void AbstractParseTreeCursor::replaceBy(AbstractParseTree lhs)
 
 	_cursor->detach_children();
 
-	_cursor->parent->make_private_copy();
+	if (_cursor->parent != 0)
+		_cursor->parent->make_private_copy();
 
 	if (lhs._tree != 0)
 		lhs._tree->refcount++;
@@ -1012,7 +1011,8 @@ void AbstractParseTreeCursor::detach()
 	_ref_prev = 0;
 	_next = 0;
 
-	_cursor->release();
+	if (_cursor != 0)
+		_cursor->release();
 	_cursor = 0;
 }
 
@@ -1106,7 +1106,8 @@ void AbstractParseTreeIteratorCursor::erase()
 		ref_list = &(*ref_list)->next;
 	list_t *list = (*ref_list);
 	*ref_list = _list;
-	list->first->release();
+	if (list->first != 0)
+		list->first->release();
 	delete list;
 }
 
