@@ -114,6 +114,7 @@ class ParseFunction
 	friend class BTHeapParser;
 public:
 	ParseFunction(BTHeapParser* parser) : _parser(parser), _state(0), _parent_function(0) {}
+	virtual ~ParseFunction() {}
 	virtual void execute() = 0;
 protected:
 	int _state;
