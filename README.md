@@ -48,6 +48,11 @@ Testing
 On Linux in root folder:
 
 ```
-software\IParse c.gr others\scan.pc -p scan_pc_output
-diff scan_pc_output others\scan_pc_output
+software/IParse c.gr others/scan.pc -p scan_pc_output
+diff scan_pc_output others/scan_pc_output
+software/IParse software/c.gr others/scan.pc -unparse others/unparse_scan.pc
+diff unparse_scan.pc others/unparse_scan.pc
 ```
+
+The diff should not find any differences.
+
