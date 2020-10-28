@@ -26,12 +26,19 @@ Windows resource files, is still under development.
 
 http://www.iwriteiam.nl/MM.html
 
-Installing
-----------
+Compiling
+---------
 
-On Linux just compile all_IParse.cpp, which includes all
-source files, with g++ into IParse executable, using the
-`-fno-operator-names` switch if needed.
+Compiling with g++ (version 7.5)
+```
+g++ -fno-operator-names all_IParse.cpp -o IParse
+```
+
+Compiling with clang (version 6.0):
+```
+clang++ -fno-operator-names all_IParse.cpp -o IParse
+```
 
 On Windows use A Visual C++ 2008 Express Edition with
 IParse.sln file.
+
