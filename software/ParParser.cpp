@@ -20,8 +20,8 @@
 //#define DEBUG_TAB if (parser->_debug_parse) printf("%*.*s", parser->_depth, parser->_depth, "")
 //#define DEBUG_NL if (parser->_debug_parse) printf("\n")
 //#define DEBUG_PT(X) if (parser->_debug_parse) X.print(stdout, true)
-//#define DEBUG_PO(X) if (parser->_debug_parse) X->print(stdout)
-//#define DEBUG_PR(X) if (parser->_debug_parse) X->print(stdout))
+//#define DEBUG_PO(X) if (parser->_debug_parse && X != 0) X->print(stdout)
+//#define DEBUG_PR(X) if (parser->_debug_parse && X != 0) X->print(stdout))
 //#define DEBUG_(X)  if (parser->_debug_parse) printf(X)
 //#define DEBUG_P1(X,A) if (parser->_debug_parse) printf(X,A)
 
@@ -990,7 +990,8 @@ void ParseRuleProcess::execute(ParParser* parser, Alternative* alt)
 					break;
 		}
 		printf(": ");
-		_rule->print(stdout);
+		if (_rule != 0)
+			_rule->print(stdout);
 		printf("\n");
 	}
 #endif
@@ -1222,7 +1223,8 @@ state1:
 						break;
 			}
 			printf(": ");
-			_rule->print(stdout);
+			if (_rule != 0)
+				_rule->print(stdout);
 			printf("\n");
 		}
 #endif
@@ -1326,7 +1328,8 @@ state1:
 					break;
 		}
 		printf(": ");
-		_rule->print(stdout);
+		if (_rule != 0)
+			_rule->print(stdout);
 		printf("\n");
 	}
 #endif
@@ -1537,7 +1540,7 @@ bool ParParser::parse(const TextFileBuffer& textBuffer, Ident root_id, AbstractP
 #ifdef TREE_CHECK
 		check(root_alt);
 #endif
-		if (_debug_parse)
+		if (_debug_parse && root_alt != 0)
 			root_alt->print(stdout,0);
 		while (_parse_position != 0 && _parse_position->alternatives == 0)
 		{
@@ -1552,7 +1555,8 @@ bool ParParser::parse(const TextFileBuffer& textBuffer, Ident root_id, AbstractP
 		if (_debug_parse)
 		{
 			printf("\nExecute: ");
-			alt->print(stdout);
+			if (alt != 0)
+				alt->print(stdout);
 			printf("\n");
 		}
 		alt->remove();
@@ -1564,7 +1568,7 @@ bool ParParser::parse(const TextFileBuffer& textBuffer, Ident root_id, AbstractP
 		rtree.attach(_result_tree);
 
 #ifdef DEBUG
-	if (detailed_debug)
+	if (detailed_debug && alt != 0)
 		alt->print(stdout, 0);
 
 #endif

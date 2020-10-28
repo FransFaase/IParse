@@ -11,8 +11,8 @@
 
 #define DEBUG_NL if (_debug_parse) printf("\n")
 #define DEBUG_PT(X) if (_debug_parse) X.print(stdout, true)
-#define DEBUG_PO(X) if (_debug_parse) X->print(stdout)
-#define DEBUG_PR(X) if (_debug_parse) X->print(stdout)
+#define DEBUG_PO(X) if (_debug_parse && X != 0) X->print(stdout)
+#define DEBUG_PR(X) if (_debug_parse && X != 0) X->print(stdout)
 #define DEBUG_(X)  if (_debug_parse) printf(X)
 #define DEBUG_P1(X,A) if (_debug_parse) printf(X,A)
 
@@ -59,7 +59,7 @@ void AbstractParser::printExpected(FILE *f, const char* filename, const TextFile
         if (unique)
         {
             fprintf(f, "    ");
-            if (_expect[i].rule)
+            if (_expect[i].rule != 0)
                 _expect[i].rule->print(f);
             else
                 printf("%s ", _expect[i].sym);

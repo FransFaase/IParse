@@ -29,12 +29,12 @@ http://www.iwriteiam.nl/MM.html
 Compiling
 ---------
 
-Compiling with g++ (version 7.5)
+Compiling with g++ (version 7.5) in `software` folder:
 ```
 g++ -fno-operator-names all_IParse.cpp -o IParse
 ```
 
-Compiling with clang (version 6.0):
+Compiling with clang (version 6.0) in `software` folder:
 ```
 clang++ -fno-operator-names all_IParse.cpp -o IParse
 ```
@@ -42,3 +42,12 @@ clang++ -fno-operator-names all_IParse.cpp -o IParse
 On Windows use A Visual C++ 2008 Express Edition with
 IParse.sln file.
 
+Testing
+-------
+
+On Linux in root folder:
+
+```
+software\IParse c.gr others\scan.pc -p scan_pc_output
+diff scan_pc_output others\scan_pc_output
+```

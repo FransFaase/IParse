@@ -245,7 +245,8 @@ void unparse_dataSrc(const char* fn, const AbstractParseTree& dataSrcGrammarTree
 			if (rule != 0)
 			{
 				fprintf(_f, "\t%d.%d ", rule->line, rule->column);
-				rule->print(_f);
+				if (rule != 0)
+					rule->print(_f);
 				fprintf(_f, "\n");
 			}
 			else

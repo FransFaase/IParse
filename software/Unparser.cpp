@@ -630,8 +630,8 @@ private:
 int Indent::_depth = 0;
 #define DEBUG_ENTER(N) //Indent indent(N);
 #define DEBUG_ARG_APT(P) //indent.newline(); fprintf(stdout, "- "); P.print(stdout, true);
-#define DEBUG_ARG_G(G) //indent.newline(); fprintf(stdout, "- "); G->print(stdout);
-#define DEBUG_ARG_NG(N, G) //indent.newline(); fprintf(stdout, "- %s ", N); G->print(stdout);
+#define DEBUG_ARG_G(G) //indent.newline(); fprintf(stdout, "- "); if (G != 0) G->print(stdout);
+#define DEBUG_ARG_NG(N, G) //indent.newline(); fprintf(stdout, "- %s ", N); if (G != 0) G->print(stdout);
 #define DEBUG_RESULT(V) V //indent.result(V)
 
 bool Unparser::match_rule_elem(const AbstractParseTree& part, GrammarRule* rule)
@@ -853,13 +853,15 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 			if (treeTypeToRule->top_rule != 0)
 			{
 				fprintf(stderr, "  Top rule: %d.%d ", treeTypeToRule->top_rule->line, treeTypeToRule->top_rule->column);
-				treeTypeToRule->top_rule->print(stderr);
+				if (treeTypeToRule->top_rule != 0)
+					treeTypeToRule->top_rule->print(stderr);
 				fprintf(stderr, "\n");
 			}
 			if (treeTypeToRule->rule != 0)
 			{
 				fprintf(stderr, "  rule: %d.%d ", treeTypeToRule->rule->line, treeTypeToRule->rule->column);
-				treeTypeToRule->rule->print(stderr);
+				if (treeTypeToRule->rule != 0)
+					treeTypeToRule->rule->print(stderr);
 				fprintf(stderr, "\n");
 			}
 			*/

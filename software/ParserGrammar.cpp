@@ -44,9 +44,6 @@ Ident TreeTypeToGrammarRules::id_list = "<list>";
 
 void GrammarRule::print(FILE *f)
 {   
-    if (this == 0)
-        return;
-
 	fprintf(f, "[%ld.%ld]", line, column); 
     switch(kind)
     {   case RK_T_EOF:
@@ -80,12 +77,14 @@ void GrammarRule::print(FILE *f)
 			break;
         case RK_OR_RULE:
             fprintf(f, "(");
-            text.or_rules->first->print(f);
+            if (text.or_rules->first != 0)
+            	text.or_rules->first->print(f);
             fprintf(f, ")");
             break;
         case RK_COR_RULE:
             fprintf(f, "C(");
-            text.or_rules->first->print(f);
+            if (text.or_rules->first != 0)
+            	text.or_rules->first->print(f);
             fprintf(f, ")");
             break;
 		case RK_AVOID:
@@ -111,19 +110,20 @@ void GrammarRule::print(FILE *f)
 	if (nongreedy)
 		fprintf(f, "NONGREEDY ");
 
-    next->print(f);
+    if (next != 0)
+    	next->print(f);
 }
 
 void GrammarOrRule::print(FILE *f, bool first)
 {
-	if (this == 0)
-		return;
 	if (!first)
 		fprintf(f, "|");
-    rule->print(f);
+	if (rule != 0)
+    	rule->print(f);
     if (!tree_name.empty())
        fprintf(f, "[%s]", tree_name.val());
-	next->print(f, false);
+	if (next != 0)
+		next->print(f, false);
 }
 
 Ident id_nt_def = "nt_def";
@@ -560,7 +560,7 @@ void Grammar::loadGrammar(const AbstractParseTree& root)
             }
         }
     }
-	if(false)
+	if (false)
     {	GrammarNonTerminal* nt;
     
     	for (nt = _all_nt; nt != 0; nt = nt->next)
@@ -573,13 +573,15 @@ void Grammar::loadGrammar(const AbstractParseTree& root)
     			for (GrammarOrRule* o_r = nt->first; o_r != 0; o_r = o_r->next)
     			{
     				printf(" First: ");
-    				o_r->rule->print(stdout);
+    				if (o_r->rule != 0)
+    					o_r->rule->print(stdout);
     				printf("\n");
     			}
     			for (GrammarOrRule* o_r2 = nt->recursive; o_r2 != 0; o_r2 = o_r2->next)
     			{
     				printf(" Recursive: ");
-    				o_r2->rule->print(stdout);
+    				if (o_r2->rule != 0)
+    					o_r2->rule->print(stdout);
     				printf("\n");
     			}
     		}
@@ -881,7 +883,7 @@ public:
 	virtual void eof() override { fprintf(_f, " eof();"); }
 	virtual void tree(const char* name) override { _call_to("tree", name); }
 
-	virtual void notSupported(const char* kind)
+	virtual void notSupported(const char* kind) override
 	{
 		fprintf(_f, " /* %s not supported*/", kind);
 	}
@@ -979,7 +981,7 @@ public:
 	virtual void eof() override { fprintf(_f, " G_EOF"); }
 	virtual void tree(const char* name) override { _call_to("TREE", name); }
 
-	virtual void notSupported(const char* kind)
+	virtual void notSupported(const char* kind) override
 	{
 		fprintf(_f, " /* %s not supported*/", kind);
 	}
@@ -1349,7 +1351,7 @@ void GrammarLoaderFromAPT::load(const AbstractParseTree& root)
             }
         }
     }
-	if(false)
+	if (false)
     {	GrammarNonTerminal* nt;
     
     	for (nt = _all_nt; nt != 0; nt = nt->next)
@@ -1362,13 +1364,15 @@ void GrammarLoaderFromAPT::load(const AbstractParseTree& root)
     			for (GrammarOrRule* o_r = nt->first; o_r != 0; o_r = o_r->next)
     			{
     				printf(" First: ");
-    				o_r->rule->print(stdout);
+    				if (o_r->rule != 0)
+    					o_r->rule->print(stdout);
     				printf("\n");
     			}
     			for (GrammarOrRule* o_r2 = nt->recursive; o_r2 != 0; o_r2 = o_r2->next)
     			{
     				printf(" Recursive: ");
-    				o_r2->rule->print(stdout);
+    				if (o_r2->rule != 0)
+    					o_r2->rule->print(stdout);
     				printf("\n");
     			}
     		}

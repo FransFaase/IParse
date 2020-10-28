@@ -1,0 +1,835 @@
+ 
+typedef long double __long_double_t;
+
+typedef long _G_clock_t;
+typedef unsigned short _G_dev_t;
+typedef long int _G_fpos_t;
+typedef unsigned short _G_gid_t;
+typedef unsigned long _G_ino_t;
+typedef unsigned short _G_mode_t;
+typedef unsigned short _G_nlink_t;
+typedef long _G_off_t;
+typedef int _G_pid_t;
+typedef int _G_ptrdiff_t;
+typedef unsigned int _G_sigset_t;
+typedef unsigned int _G_size_t;
+typedef long _G_time_t;
+typedef unsigned short _G_uid_t;
+typedef long int _G_wchar_t;
+typedef int   _G_int32_t;
+typedef unsigned int   _G_uint32_t;
+typedef int _G_ssize_t;
+typedef void * _G_va_list;
+
+
+struct _IO_jump_t;  struct _IO_FILE;
+
+struct _IO_marker {
+  struct _IO_marker *_next;
+  struct _IO_FILE *_sbuf;
+  int _pos;
+
+};
+
+struct _IO_FILE {
+  int _flags;		 
+
+  char* _IO_read_ptr;	 
+  char* _IO_read_end;	 
+  char* _IO_read_base;	 
+  char* _IO_write_base;	 
+  char* _IO_write_ptr;	 
+  char* _IO_write_end;	 
+  char* _IO_buf_base;	 
+  char* _IO_buf_end;	 
+   
+  char *_IO_save_base;  
+  char *_IO_backup_base;   
+  char *_IO_save_end;  
+
+  struct _IO_marker *_markers;
+  
+  struct _IO_FILE *_chain;
+  
+  struct _IO_jump_t *_jumps;  
+  
+  int _fileno;
+  int _blksize;
+  _G_off_t  _offset;
+  
+
+   
+  unsigned short _cur_column;
+  char _unused;
+  char _shortbuf[1];
+  
+   
+};
+
+
+typedef struct _IO_FILE _IO_FILE;
+
+
+struct _IO_FILE_plus {
+  _IO_FILE _file;
+  __const void *_vtable;
+};
+
+extern struct _IO_FILE_plus _IO_stdin_, _IO_stdout_, _IO_stderr_;
+
+extern int __underflow  (_IO_FILE*) 	;
+extern int __overflow  (_IO_FILE*, int) 	;
+
+extern unsigned __adjust_column  (unsigned start, __const char *line, int count) 	;
+
+extern int _IO_vfscanf  (_IO_FILE*, __const char*, _G_va_list , int*) 	;
+extern int _IO_vfprintf  (_IO_FILE*, __const char*, _G_va_list ) 	;
+extern _G_ssize_t  _IO_padn  (_IO_FILE *, int, _G_ssize_t ) 	;
+extern _G_size_t  _IO_sgetn  (_IO_FILE *, void*, _G_size_t ) 	;
+
+extern void _IO_free_backup_area  (_IO_FILE*) 	;
+
+
+typedef _G_size_t  size_t;
+
+typedef struct _IO_FILE FILE;
+typedef _G_fpos_t  fpos_t;
+
+extern FILE *stdin, *stdout, *stderr;  
+
+extern void clearerr  (FILE*) 	;
+extern int fclose  (FILE*) 	;
+extern int feof  (FILE*) 	;
+extern int ferror  (FILE*) 	;
+extern int fflush  (FILE*) 	;
+extern int fgetc  (FILE *) 	;
+extern int fgetpos  (FILE* fp, fpos_t *pos) 	;
+extern char* fgets  (char*, int, FILE*) 	;
+extern FILE* fopen  (__const char*, __const char*) 	;
+extern int fprintf  (FILE*, __const char* format, ...) 	;
+extern int fputc  (int, FILE*) 	;
+extern int fputs  (__const char *str, FILE *fp) 	;
+extern size_t fread  (void*, size_t, size_t, FILE*) 	;
+extern FILE* freopen  (__const char*, __const char*, FILE*) 	;
+extern int fscanf  (FILE *fp, __const char* format, ...) 	;
+extern int fseek  (FILE* fp, long int offset, int whence) 	;
+extern int fsetpos  (FILE* fp, __const fpos_t *pos) 	;
+extern long int ftell  (FILE* fp) 	;
+extern size_t fwrite  (__const void*, size_t, size_t, FILE*) 	;
+extern int getc  (FILE *) 	;
+extern int getchar  (void) 	;
+extern char* gets  (char*) 	;
+extern void perror  (__const char *) 	;
+extern int printf  (__const char* format, ...) 	;
+extern int putc  (int, FILE *) 	;
+extern int putchar  (int) 	;
+extern int puts  (__const char *str) 	;
+extern int remove  (__const char*) 	;
+extern int rename  (__const char* _old, __const char* _new) 	;
+extern void rewind  (FILE*) 	;
+extern int scanf  (__const char* format, ...) 	;
+extern void setbuf  (FILE*, char*) 	;
+extern void setlinebuf  (FILE*) 	;
+extern void setbuffer  (FILE*, char*, int) 	;
+extern int setvbuf  (FILE*, char*, int mode, size_t size) 	;
+extern int sprintf  (char*, __const char* format, ...) 	;
+extern int sscanf  (__const char* string, __const char* format, ...) 	;
+extern FILE* tmpfile  (void) 	;
+extern char* tmpnam  (char*) 	;
+extern int ungetc  (int c, FILE* fp) 	;
+extern int vfprintf  (FILE *fp, char __const *fmt0, _G_va_list) 	;
+extern int vprintf  (char __const *fmt, _G_va_list) 	;
+extern int vsprintf  (char* string, __const char* format, _G_va_list) 	;
+
+extern FILE *fdopen  (int, __const char *) 	;
+extern int fileno  (FILE*) 	;
+extern FILE* popen  (__const char*, __const char*) 	;
+extern int pclose  (FILE*) 	;
+
+extern int getw  (FILE*) 	;
+extern int putw  (int, FILE*) 	;
+
+extern char* tempnam  (__const char *__dir, __const char *__pfx) 	;
+
+extern int sys_nerr;
+extern char *sys_errlist[];
+
+
+extern int _sys_nerr;
+extern char *_sys_errlist[];
+
+ 
+
+ 
+extern void psignal  (int __sig, __const char *__s) 	;
+
+extern int __underflow  (struct _IO_FILE*) 	;
+extern int __overflow  (struct _IO_FILE*, int) 	;
+
+ 
+extern void *  memcpy  (void *  __dest, __const void *  __src,
+			    size_t __n) 	;
+
+extern void *  memmove  (void *  __dest, __const void *  __src,
+			     size_t __n) 	;
+
+extern void *  __memccpy  (void *  __dest, __const void *  __src,
+			       int __c, size_t __n) 	;
+
+extern void *  memccpy  (void *  __dest, __const void *  __src,
+			     int __c, size_t __n) 	;
+
+
+extern void *  memset  (void *  __s, int __c, size_t __n) 	;
+
+
+extern int memcmp  (__const void *  __s1, __const void *  __s2,
+			size_t __n) 	;
+
+
+ 
+extern void *  memchr  (__const void *  __s, int __c, size_t __n) 	;
+
+
+ 
+extern char *strcpy  (char *__dest, __const char *__src) 	;
+ 
+extern char *strncpy  (char *__dest, __const char *__src, size_t __n) 	;
+
+ 
+extern char *strcat  (char *__dest, __const char *__src) 	;
+ 
+extern char *strncat  (char *__dest, __const char *__src, size_t __n) 	;
+
+ 
+extern int strcmp  (__const char *__s1, __const char *__s2) 	;
+ 
+extern int strncmp  (__const char *__s1, __const char *__s2, size_t __n) 	;
+
+ 
+extern int strcoll  (__const char *__s1, __const char *__s2) 	;
+ 
+extern size_t strxfrm  (char *__dest, __const char *__src, size_t __n) 	;
+
+
+ 
+extern char *strdup  (__const char *__s) 	;
+
+
+ 
+extern char *strchr  (__const char *__s, int __c) 	;
+ 
+extern char *strrchr  (__const char *__s, int __c) 	;
+
+ 
+
+extern size_t strcspn  (__const char *__s, __const char *__reject) 	;
+ 
+
+extern size_t strspn  (__const char *__s, __const char *__accept) 	;
+ 
+extern char *strpbrk  (__const char *__s, __const char *__accept) 	;
+ 
+extern char *strstr  (__const char *__haystack, __const char *__needle) 	;
+ 
+extern char *strtok  (char *__s, __const char *__delim) 	;
+
+
+ 
+
+
+extern void *  memmem  (__const void *  __needle, size_t __needlelen,
+			    __const void *  __haystack, size_t __haystacklen) 	;
+
+
+ 
+extern size_t strlen  (__const char *__s) 	;
+
+ 
+extern char *strerror  (int __errnum) 	;
+
+
+ 
+extern char *index  (__const char *__s, int __c) 	;
+
+ 
+extern char *rindex  (__const char *__s, int __c) 	;
+
+
+
+ 
+extern void bcopy  (__const void *  __src, void *  __dest, int __n) 	;
+
+ 
+extern void bzero  (void *  __s, int __n) 	;
+
+ 
+extern int bcmp  (__const void *  __s1, __const void *  __s2, int __n) 	;
+
+
+
+ 
+
+extern int ffs  (int __i) 	;
+
+extern int strcasecmp  (__const char *__s1, __const char *__s2) 	;
+
+extern char *strsep  (char **__stringp, __const char *__delim) 	;
+
+extern int strncasecmp  (__const char *__s1, __const char *__s2,
+			     size_t __n) 	;
+
+extern char *strsignal  (int __sig) 	;
+
+ 
+extern char *stpcpy  (char *__dest, __const char *__src) 	;
+
+ 
+extern char *strfry  (char *__string) 	;
+
+ 
+extern void *  memfrob  (void *  __s, size_t __n) 	;
+
+extern void swab  (__const void *  __from, void *  __to,
+                        size_t __nbytes) 	;
+
+typedef int bool;
+
+typedef 	__signed  long longint;
+typedef unsigned long longword;
+typedef unsigned short word;
+typedef unsigned char byte;
+
+char *info;
+longword file_pos;
+longword file_len;
+
+void _assign(FILE *the_file);
+
+void _set_file_pos(longword new_file_pos);
+void _next();
+void _advance(word steps);
+
+void _print_state(void);
+
+
+
+
+word start_line;
+word start_column;
+
+typedef struct
+{   longword file_pos;
+    word cur_line;
+    word cur_column;
+} scan_pos_t;
+
+void save_pos(scan_pos_t *sp);
+void restore_pos(scan_pos_t *sp);
+
+void print_last_pos(void);
+
+void skip_comment(void);
+bool accept_eof();
+bool accept_string(char **string);
+bool accept_ident(char **ident);
+bool accept_char(char *v);
+bool accept_int(longint *v);
+bool accept_double(double *v);
+bool accept_symbol(char *sym);
+bool accept_keyword(char *sym);
+
+char *string(char *s);
+
+static char *start_info()
+{   static char buff[13];
+    int i;
+    char *s;
+
+    for (i = 0, s = info; i < 10 && *s; s++)
+        if (*s == '\n')
+        {   buff[i++] = '\\';
+            buff[i++] = 'n';
+        }
+        else if (*s == '\t')
+        {   buff[i++] = '\\';
+            buff[i++] = 't';
+        }
+        else
+            buff[i++] = *s;
+
+    buff[i] = '\0';
+    return buff;
+}
+
+word cur_line = 1;
+word cur_column = 1;
+word start_line;
+word start_column;
+
+longword f_file_pos = 0;
+word f_line = 1;
+word f_column = 1;
+bool exp_eof = 0 ;
+bool exp_string = 0 ;
+bool exp_ident = 0 ;
+bool exp_int = 0 ;
+bool exp_double = 0 ;
+bool exp_char = 0 ;
+char *exp_syms[10];
+int nr_exp_syms = 0;
+
+void update_f(void);
+void update_f()
+{
+    if (file_pos > f_file_pos)
+    {   exp_eof = 0 ;
+        exp_string = 0 ;
+        exp_ident = 0 ;
+        exp_int = 0 ;
+        exp_double = 0 ;
+        exp_char = 0 ;
+        nr_exp_syms = 0;
+        f_file_pos = file_pos;
+        f_line = cur_line;
+        f_column = cur_column;
+    }
+}
+
+void print_last_pos()
+{   int i;
+
+    printf("%d.%d Expected:", f_line, f_column);
+    if (exp_eof) printf(" EOF");
+    if (exp_string) printf(" string");
+    if (exp_ident) printf(" identifier");
+    if (exp_int) printf(" integer");
+    if (exp_double) printf(" double");
+    if (exp_char) printf(" char");
+    for (i = 0; i < nr_exp_syms; i++)
+        printf(" \"%s\"", exp_syms[i]); 
+    printf("\n");
+}
+
+static void expected_string(char *s)
+{
+    int i;
+
+    if (nr_exp_syms >= 10)
+        return;
+
+    for (i = 0; i < nr_exp_syms; i++)
+        if (!strcmp(s, exp_syms[i]))
+            return;
+    exp_syms[nr_exp_syms++] = s;
+}
+    
+    
+
+
+void save_pos(scan_pos_t *sp)
+{
+    sp->file_pos = file_pos;
+    sp->cur_line = cur_line;
+    sp->cur_column = cur_column;
+}
+
+void restore_pos(scan_pos_t *sp)
+{
+    _set_file_pos(sp->file_pos);
+    cur_line = sp->cur_line;
+    cur_column = sp->cur_column;
+     
+}
+
+void skip_space()
+{
+    for(;;)
+    {    ;
+        if (*info == ' ')
+        {   cur_column++;
+            _next();
+        }
+        else if (*info == '\t')
+        {   cur_column = ((cur_column + 8) % 8) * 8;
+            _next();
+        }
+        else if (info[0] == '\n')
+        {   cur_column = 0;
+            cur_line++;
+            _next();
+        }
+        else if (info[0] == '/' && info[1] == '/')
+        {
+            while (!  (file_pos > file_len)  && info[0] != '\n')
+            {   _next();
+                cur_column++;
+            }
+        }
+        else if (info[0] == '/' && info[1] == '*')
+        {   scan_pos_t sp;
+
+            save_pos(&sp);
+ 
+            while (!  (file_pos > file_len)  && info[0] != '*' && info[1] != '/')
+            {   _next();
+                cur_column++;
+            }
+            if (  (file_pos > file_len) )
+            {   printf("Warning: %d.%d comment not terminated\n",
+                       sp.cur_line, sp.cur_column);
+            }
+        }
+        else
+            break;
+    }
+    start_line = cur_line;
+    start_column = cur_column;
+     
+}
+
+bool accept_eof()
+{
+    skip_space();
+    return   (file_pos > file_len) ;
+}
+
+bool accept_string(char **string)
+{
+    scan_pos_t sp;
+    int i;
+
+    skip_space();
+    if (  (file_pos > file_len)  || info[0] != '"')
+    {   update_f();
+        exp_string = 1 ;
+        printf( "%d.%d: accept_string() failed for: `%s'\n" ,  
+                 start_line ,  start_column ,  start_info() ) ;
+        return 0 ;
+    }
+
+    save_pos(&sp);
+
+    i = 0;
+    _next();
+    for (;;)
+    {
+        if (  (file_pos > file_len)  || *info == '\0' || *info == '\n')
+        {   
+            printf("Error: %d.%d incorrectly terminated string\n",
+                   sp.cur_line, sp.cur_column);
+            break;
+        }
+        else if (*info == '\\')
+        {
+            _next();
+            if (0 <= *info && *info <= 7)
+            {   char d1 = *info;
+                _next();
+                if (0 <= *info && *info <= 7)
+                {   _next();
+                    if ((d1 == '0' || d1 == '1') && 0 <= *info && *info <= 7)
+                        _next();
+                }
+            }
+            i++;
+        }
+        else if (*info == '"')
+        {   _next();
+            skip_space();
+            if (  (file_pos > file_len)  || *info != '"')
+                 break;
+            _next();
+        }
+        else
+        {   i++;
+            _next();
+        }
+    }
+    *string = (char *)malloc( i +1) ;
+    restore_pos(&sp); 
+    
+    i = 0;
+    _next();
+    for (;;)
+    {
+        if (  (file_pos > file_len)  || *info == '\0' || *info == '\n')
+        {   
+            break;
+        }
+        else if (*info == '\\')
+        {
+            _next();
+            cur_column++;
+            if (!  (file_pos > file_len)  && 0 <= *info && *info <= 7)
+            {   char d1 = *info,
+                     v = *info - '0';
+                _next();
+                cur_column++;
+                if (!  (file_pos > file_len)  && 0 <= *info && *info <= 7)
+                {   v = v*8 + *info - '0';
+                    _next();
+                    cur_column++;
+                    if (   !  (file_pos > file_len)  && (d1 == '0' || d1 == '1') 
+                        && 0 <= *info && *info <= 7)
+                    {   v = v*8 + *info - '0';
+                        _next();
+                        cur_column++;
+                    }
+                }
+                (*string)[i++] = v;
+            }
+            else if (!  (file_pos > file_len)  && *info == 'n')
+                (*string)[i++] = '\n';
+            else if (!  (file_pos > file_len)  && *info == 't')
+                (*string)[i++] = '\t';
+            else if (!  (file_pos > file_len) )
+                (*string)[i++] = *info;
+        }
+        else if (*info == '"')
+        {   _next();
+            cur_column++;
+            skip_space();
+            if (  (file_pos > file_len)  || *info != '"')
+                 break;
+            cur_column++;
+            _next();
+        }
+        else
+        {   (*string)[i++] = *info;
+            cur_column++;
+            _next();
+        }
+    }
+    (*string)[i] = '\0';
+    printf( "%d.%d: accept_string(\"%s\")\n" ,  
+             start_line ,  start_column ,  *string ) ;
+    return 1 ;
+}
+
+bool accept_ident(char **ident)
+{
+    int i;
+    char s;
+
+    skip_space();
+    if (  (file_pos > file_len)  || (!isalpha(*info) && *info != '_'))
+    {   update_f();
+        exp_ident = 1 ;
+        printf( "%d.%d: accept_ident() failed for `%s'\n" ,  
+                 start_line ,  start_column ,  start_info() ) ;
+        return 0 ;
+    }
+  
+    i = 1;
+    while (isalpha(info[i]) || isdigit(info[i]) || info[i] == '_') 
+        i++;
+    s = info[i];
+    info[i] = '\0';
+    *ident = string(info);
+    info[i] = s;
+    _advance(i);
+    cur_column += i;
+    
+    printf( "%d.%d: accept_ident(%s)\n" ,  start_line ,  start_column ,  *ident ) ;
+    return 1 ; 
+}
+
+bool accept_char(char *v)
+{
+    skip_space();
+    if (  (file_pos > file_len)  || *info != '\'')
+    {   update_f();
+        exp_char = 1 ;
+        printf( "%d.%d: accept_char() failed for `%s'\n" ,  
+                 start_line ,  start_column ,  start_info() ) ;
+        return 0 ;
+    }
+
+    _next();    
+    if (*info == '\\')
+    {
+        _next();
+        cur_column++;
+        if (0 <= *info && *info <= 7)
+        {   char d1 = *info;
+
+            *v = *info - '0';
+            _next();
+            cur_column++;
+            if (0 <= *info && *info <= 7)
+            {   *v = (*v)*8 + *info - '0';
+                _next();
+                cur_column++;
+                if ((d1 == '0' || d1 == '1') && 0 <= *info && *info <= 7)
+                {   *v = (*v)*8 + *info - '0';
+                    _next();
+                    cur_column++;
+                }
+            }
+        }
+        else if (*info == 'n')
+            *v = '\n';
+        else if (*info == 't')
+            *v = '\t';
+        else
+            *v = *info;
+    }
+    else
+        *v = *info;
+    _next();
+    cur_column++;
+    if (*info != '\'')
+    {   printf("Error: %d.%d ill terminated character\n",
+               cur_line, cur_column);
+    }
+    else
+    {   _next();
+        cur_column++;
+    }
+    printf( "%d.%d: accept_char(%c)\n" ,  start_line ,  start_column ,  *v ) ;
+    return 1 ;
+}
+
+bool accept_int(longint *v)
+{
+    int i = 0;
+
+    skip_space();
+    if (  (file_pos > file_len)  || (   !isdigit(*info)
+                 && (   (*info != '+' && *info != '-') 
+                     || !isdigit(info[1]))))
+    {   update_f();
+        exp_int = 1 ;
+        printf( "%d.%d: accept_int() failed for `%s'\n" ,  
+                 start_line ,  start_column ,  start_info() ) ;
+        return 0 ;
+    }
+
+    if (info[i] == '-' || info[i] == '+')
+        i++;
+    if (info[i] == '0' && info[i+1] == 'x')
+    {   i += 2;
+        while (   isdigit(info[i]) 
+               || ('a' <= info[i] && info[i] <= 'f') 
+               || ('A' <= info[i] && info[i] <= 'F'))
+            i++;
+    }
+    else
+    {   while (isdigit(info[i]))
+            i++;
+        if (info[i] == '.')
+        {   update_f();
+            exp_int = 1 ;
+            printf( "%d.%d: accept_int() found double `%s'\n" ,  
+                     start_line ,  start_column ,  start_info() ) ;
+            return 0 ;
+        }
+        if (info[i] == 'L')
+            i++;
+    }
+    
+    sscanf(info, "%ld", v);
+    _advance(i);
+    cur_column += i;
+
+    printf( "%d.%d: accept_int(%ld)\n" ,  start_line ,  start_column ,  *v ) ;
+    return 1 ;
+}
+
+bool accept_double(double *v)
+{
+    int i = 0;
+
+    skip_space();
+    if (  (file_pos > file_len)  || (   !isdigit(*info) && *info != '.'
+                 && (   (*info != '+' && *info != '-') 
+                     || (!isdigit(info[1]) && *info != '.'))))
+    {   update_f();
+        exp_double = 1 ;
+        printf( "%d.%d: accept_double() failed for `%s'\n" ,  
+                 start_line ,  start_column ,  start_info() ) ;
+        return 0 ;
+    }
+
+    if (*info == '-' || *info == '+')
+        i++;
+    while (isdigit(*info))
+        i++;
+    if (*info != '.')
+    {   update_f();
+        exp_double = 1 ;
+        printf( "%d.%d: accept_double() found int `%s'\n" ,  
+                 start_line ,  start_column ,  start_info() ) ;
+        return 0 ;
+    }
+    i++;
+    while (isdigit(*info))
+        i++;
+
+    sscanf(info, "%lf", v);
+    _advance(i);
+    cur_column += i;
+
+    printf( "%d.%d: accept_double(%lf)\n" ,  start_line ,  start_column ,  *v ) ;
+    return 1 ;
+}
+
+bool accept_symbol(char *sym)
+{
+    word len = strlen(sym);
+
+    skip_space();
+    if (  (file_pos > file_len)  || strncmp(info, sym, len))
+    {   update_f();
+        expected_string(sym);
+        printf( "%d.%d: accept_sym(%s) failed for `%s'\n" ,  
+                 start_line ,  start_column ,  sym ,  start_info() ) ;
+        return 0 ;
+    }
+
+    _advance(len);
+    printf( "%d.%d: accept_sym(%s)\n" ,  start_line ,  start_column ,  sym ) ;
+    return 1 ;
+}
+
+bool accept_keyword(char *sym)
+{
+    scan_pos_t ps;
+    int i;
+    char s;
+    
+
+    skip_space();
+    if (  (file_pos > file_len)  || (!isalpha(*info) && *info != '_'))
+    {   update_f();
+        expected_string(sym);
+        printf( "%d.%d: accept_keyword(%s) failed for `%s'\n" ,  
+                 start_line ,  start_column ,  sym ,  start_info() ) ;
+        return 0 ;
+    }
+
+    save_pos(&ps);
+  
+    i = 1;
+    while (isalpha(info[i]) || isdigit(info[i]) || info[i] == '_') 
+        i++;
+    s = info[i];
+    info[i] = '\0';
+    if (sym != string(info))
+    {   info[i] = s;
+        restore_pos(&ps);
+        update_f();
+        expected_string(sym);
+        printf( "%d.%d: accept_keyword(%s) failed `%s'\n" ,  
+                 start_line ,  start_column ,  sym ,  start_info() ) ;
+        return 0 ;
+    }
+
+    info[i] = s;
+    _advance(i);
+    cur_column += i;
+    
+    printf( "%d.%d: accept_keyword(%s)\n" ,  start_line ,  start_column ,  sym ) ;
+    return 1 ; 
+}

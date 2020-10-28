@@ -17,8 +17,8 @@
 #define DEBUG_TAB if (_debug_parse) printf("%*.*s", _depth, _depth, "")
 #define DEBUG_NL if (_debug_parse) printf("\n")
 #define DEBUG_PT(X) if (_debug_parse) X.print(stdout, true)
-#define DEBUG_PO(X) if (_debug_parse) X->print(stdout)
-#define DEBUG_PR(X) if (_debug_parse) X->print(stdout)
+#define DEBUG_PO(X) if (_debug_parse && X != 0) X->print(stdout)
+#define DEBUG_PR(X) if (_debug_parse && X != 0) X->print(stdout)
 #define DEBUG_(X)  if (_debug_parse) printf(X)
 #define DEBUG_P1(X,A) if (_debug_parse) printf(X,A)
 
