@@ -39,7 +39,7 @@ Compiling with clang (version 6.0) in `software` folder:
 clang++ -fno-operator-names all_IParse.cpp -o IParse
 ```
 
-On Windows use A Visual C++ 2008 Express Edition with
+On Windows use Visual C++ 2008 Express Edition with
 IParse.sln file.
 
 Testing
@@ -50,7 +50,7 @@ On Linux in root folder:
 ```
 software/IParse c.gr others/scan.pc -p scan_pc_output
 diff scan_pc_output others/scan_pc_output
-software/IParse software/c.gr others/scan.pc -unparse others/unparse_scan.pc
+software/IParse software/c.gr others/scan.pc -unparse unparse_scan.pc
 diff unparse_scan.pc others/unparse_scan.pc
 ```
 
