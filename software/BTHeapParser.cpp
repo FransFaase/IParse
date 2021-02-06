@@ -256,6 +256,7 @@ void ParseNTFunction::execute()
 		_parser->exit();
 		return;
 	}
+    _sol->success = s_fail; // To prevent indirect left-recurrence
 
 	_parser->_current_nt = _nt;
 
@@ -319,7 +320,6 @@ void ParseNTFunction::execute()
 		printf("Failed: %s\n", _nt.val());
 	}
 	_parser->_current_nt = _surr_nt;
-	_sol->success = s_fail;
 	_result = false;
 	_parser->exit();
 }

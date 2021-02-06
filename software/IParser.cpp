@@ -129,6 +129,7 @@ bool IParser::parse_nt( GrammarNonTerminal* non_term, AbstractParseTree& rtree)
         DEBUG_EXIT_P1("parse_nt(%s) FAIL", nt.val());  DEBUG_NL;
         return false;
     }
+    sol->success = s_fail; // To prevent indirect left-recurrence
 
     _current_nt = nt;
 
