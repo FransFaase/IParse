@@ -114,6 +114,7 @@ public:
 	
 	AbstractParseTree part(int n) const;
 
+	void setFileName(const char* filename);
 	void setLineColumn(int line, int column);
 
 private:

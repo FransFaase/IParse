@@ -10,12 +10,12 @@
 
 struct tree_t
 {   
-	tree_t(const char* n_type = tt_list) : type(n_type), line(0), column(0), refcount(1) { c.parts = 0; }
-	tree_t(const Ident ident) : type(tt_ident), line(0), column(0), refcount(1) { c.ident = ident.val(); }
-	tree_t(string_t *value) : type(tt_str_value), line(0), column(0), refcount(1) { c.str_value = value; if (value != 0) value->refcount++; }
-	tree_t(long value) : type(tt_int_value), line(0), column(0), refcount(1) { c.int_value = value; }
-	tree_t(double value) : type(tt_double_value), line(0), column(0), refcount(1) { c.double_value = value; }
-	tree_t(char value) : type(tt_char_value), line(0), column(0), refcount(1) { c.char_value = value; }
+	tree_t(const char* n_type = tt_list) : type(n_type), filename(0), line(0), column(0), refcount(1) { c.parts = 0; }
+	tree_t(const Ident ident) : type(tt_ident), filename(0), line(0), column(0), refcount(1) { c.ident = ident.val(); }
+	tree_t(string_t *value) : type(tt_str_value), filename(0), line(0), column(0), refcount(1) { c.str_value = value; if (value != 0) value->refcount++; }
+	tree_t(long value) : type(tt_int_value), filename(0), line(0), column(0), refcount(1) { c.int_value = value; }
+	tree_t(double value) : type(tt_double_value), filename(0), line(0), column(0), refcount(1) { c.double_value = value; }
+	tree_t(char value) : type(tt_char_value), filename(0), line(0), column(0), refcount(1) { c.char_value = value; }
 	
 	void release();
 	
@@ -23,6 +23,7 @@ struct tree_t
 	static void assign(tree_t *&d, tree_t *s);
 	tree_t* clone();
 
+	void setFileName(const char *fn);
 	void print(FILE *f, bool compact);
 
 	const char *type;
@@ -34,6 +35,7 @@ struct tree_t
         double double_value;
         char   char_value;
     } c;
+    const char *filename;
     int line, column;
     unsigned long refcount;
 
@@ -141,6 +143,16 @@ void tree_t::release()
         }
 		delete this;
     }
+}
+
+void tree_t::setFileName(const char* fn)
+{
+	filename = fn;
+	if (can_have_parts())
+	{
+		for (list_t *list = c.parts; list != 0; list = list->next)
+			list->first->setFileName(fn);
+	}
 }
 
 void tree_t::print(FILE *f, bool compact)
@@ -811,6 +823,14 @@ AbstractParseTree AbstractParseTree::part( int i ) const
 	return result;
 }
 
+
+void AbstractParseTree::setFileName(const char* filename)
+{
+	if (_tree != 0)
+	{
+		_tree->setFileName(filename);
+	}
+}
 
 void AbstractParseTree::setLineColumn(int line, int column)
 {
