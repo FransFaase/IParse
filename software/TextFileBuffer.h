@@ -25,6 +25,7 @@ public:
 	}
 	
 	inline bool eof() { return _pos >= _len; }
+	inline unsigned long left() { return _len - _pos; }
 	inline char operator*() { return *_info; }
 	inline char operator[](int i) { return _info[i]; }
 	inline operator const char*() { return _info; }

@@ -3,6 +3,7 @@
 #include "AbstractParseTree.cpp"
 #include "TextFileBuffer.cpp"
 #include "Scanner.cpp"
+#include "MarkDownScanner.cpp"
 #include "ProtosScanner.cpp"
 #include "RcScanner.cpp"
 #include "PascalScanner.cpp"
