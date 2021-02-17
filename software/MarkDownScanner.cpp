@@ -14,21 +14,22 @@
 #define IDENT_START_CHAR(X) (isalpha(X)||X=='_')
 #define IDENT_FOLLOW_CHAR(X) (isalpha(X)||isdigit(X)||X=='_')
 
-void MarkDownScanner::initScanning(Grammar* grammar)
+void MarkDownCScanner::initScanning(Grammar* grammar)
 {
 	AbstractScanner::initScanning(grammar);
 	_last_space_pos.clear();
 	_in_text = true;
 }
 
-Ident MarkDownScanner::id_ident = "ident";
-Ident MarkDownScanner::id_string = "string";
-Ident MarkDownScanner::id_cstring = "cstring";
-Ident MarkDownScanner::id_char = "char";
-Ident MarkDownScanner::id_int = "int";
-Ident MarkDownScanner::id_double = "double";
+Ident MarkDownCScanner::id_ident = "ident";
+Ident MarkDownCScanner::id_macro_ident = "macro_ident";
+Ident MarkDownCScanner::id_string = "string";
+Ident MarkDownCScanner::id_cstring = "cstring";
+Ident MarkDownCScanner::id_char = "char";
+Ident MarkDownCScanner::id_int = "int";
+Ident MarkDownCScanner::id_double = "double";
 
-void MarkDownScanner::skipSpace(TextFileBuffer& text)
+void MarkDownCScanner::skipSpace(TextFileBuffer& text)
 {
 	bool cpp_comments = true;
 	bool nested_comments = true;
@@ -46,22 +47,25 @@ void MarkDownScanner::skipSpace(TextFileBuffer& text)
 	*/
 	for(;;)
 	{   
+		fprintf(stderr, "%d,%d %s\n", text.line(), text.column(), _in_text ? "in text" : "in code");
 		if (_in_text)
 		{
 			if (text.eof())
 			{
 				break;
 			}
-			if (text.column() == 1 && text.left() >= 5 && strcmp(text, "```c") == 0 && (text[4] == '\r' || text[4] == '\n'))
+			if (text.column() == 1 && text.left() >= 5 && strncmp(text, "```c", 4) == 0 && (text[4] == '\r' || text[4] == '\n'))
 			{
 				_in_text = false;
 			}
-			while (!text.eof() && text[0] != '\n')
+			while (!text.eof() && *text != '\n')
+				text.next();
+			if (!text.eof() && *text == '\n')
 				text.next();
 		}
 		else
 		{
-			if (*text == ' ' || *text == '\t' || text[0] == '\n' || text[0] == '\r')
+			if (*text == ' ' || *text == '\t' || *text == '\n' || *text == '\r')
 			{
 				text.next();
 			}
@@ -97,9 +101,11 @@ void MarkDownScanner::skipSpace(TextFileBuffer& text)
 				text.next();
 				text.next();
 			}
-			if (text.column() == 1 && text.left() >= 4 && strcmp(text, "```") == 0 && (text[3] == '\r' || text[3] == '\n'))
+			else if (text.column() == 1 && text.left() >= 4 && strncmp(text, "```", 3) == 0 && (text[3] == '\r' || text[3] == '\n'))
 			{
-				while (!text.eof() && text[0] != '\n')
+				while (!text.eof() && *text != '\n')
+					text.next();
+				if (!text.eof() && *text == '\n')
 					text.next();
 				_in_text = true;				
 			}
@@ -107,6 +113,7 @@ void MarkDownScanner::skipSpace(TextFileBuffer& text)
 				break;
 		}
 	}
+	fprintf(stderr, "At %d,%d\n", text.line(), text.column());
 
 	/* Fixed part. Do not modify!! */
 	_last_space_end_pos = text;
@@ -114,12 +121,12 @@ void MarkDownScanner::skipSpace(TextFileBuffer& text)
 }
 
 
-bool MarkDownScanner::acceptEOF(TextFileBuffer& text)
+bool MarkDownCScanner::acceptEOF(TextFileBuffer& text)
 {
 	return text.eof();
 }
 
-bool MarkDownScanner::acceptLiteral(TextFileBuffer& text, const char* sym)
+bool MarkDownCScanner::acceptLiteral(TextFileBuffer& text, const char* sym)
 {
 	if (*sym == '\0')
 		return true;
@@ -150,10 +157,12 @@ bool MarkDownScanner::acceptLiteral(TextFileBuffer& text, const char* sym)
 	return true;
 }
 
-bool MarkDownScanner::acceptTerminal(TextFileBuffer& text, Ident name, AbstractParseTree& result)
+bool MarkDownCScanner::acceptTerminal(TextFileBuffer& text, Ident name, AbstractParseTree& result)
 {
 	if (name == id_ident)
 		return accept_ident(text, result);
+	if (name == id_macro_ident)
+		return accept_macro_ident(text, result);
 	if (name == id_string)
 		return accept_string(text, result, false);
 	if (name == id_cstring)
@@ -168,7 +177,7 @@ bool MarkDownScanner::acceptTerminal(TextFileBuffer& text, Ident name, AbstractP
 	return false;
 }
 
-bool MarkDownScanner::acceptWhiteSpace(TextFileBuffer& text, Ident name)
+bool MarkDownCScanner::acceptWhiteSpace(TextFileBuffer& text, Ident name)
 {
 	static Ident id_notamp = "notamp";
 	if (name == "notamp")
@@ -176,10 +185,14 @@ bool MarkDownScanner::acceptWhiteSpace(TextFileBuffer& text, Ident name)
 		if (!text.eof() && *text == '&')
 			return false;
 	}
+	if (name == "nows")
+	{
+		text = _last_space_pos;
+	}
 	return true;
 }
 
-bool MarkDownScanner::accept_ident(TextFileBuffer& text, Ident& ident, bool& is_keyword, const char* keyword)
+bool MarkDownCScanner::accept_ident(TextFileBuffer& text, Ident& ident, bool& is_keyword, const char* keyword)
 {
 	if (text == _last_ident_pos)
 	{
@@ -224,7 +237,7 @@ bool MarkDownScanner::accept_ident(TextFileBuffer& text, Ident& ident, bool& is_
 }
 
 
-bool MarkDownScanner::accept_ident(TextFileBuffer& text, AbstractParseTree& result)
+bool MarkDownCScanner::accept_ident(TextFileBuffer& text, AbstractParseTree& result)
 {
 	TextFilePos start_pos = text;
 
@@ -240,8 +253,29 @@ bool MarkDownScanner::accept_ident(TextFileBuffer& text, AbstractParseTree& resu
 	return false;
 }
 
+bool MarkDownCScanner::accept_macro_ident(TextFileBuffer& text, AbstractParseTree& result)
+{
+	TextFilePos start_pos = text;
 
-bool MarkDownScanner::accept_string(TextFileBuffer& text, AbstractParseTree& result, bool c_string)
+	Ident ident;
+	bool is_keyword;
+	if (accept_ident(text, ident, is_keyword, 0) && !is_keyword)
+	{
+		for (const char *s = ident.val(); *s != '\0'; s++)
+			if ((*s < 'A' || 'Z' < *s) && *s != '_')
+			{
+				text = start_pos;
+				return false;
+			}
+		result = ident;
+		return true;
+	}
+
+	text = start_pos;
+	return false;
+}
+
+bool MarkDownCScanner::accept_string(TextFileBuffer& text, AbstractParseTree& result, bool c_string)
 /* Method for scanning a C-like string. If a string
    was scanned it is returned in 'string'. If 'c_string'
    is true, multiple strings only separated by white
@@ -318,7 +352,7 @@ bool MarkDownScanner::accept_string(TextFileBuffer& text, AbstractParseTree& res
 	return true;
 }
 
-bool MarkDownScanner::accept_char(TextFileBuffer& text, AbstractParseTree& result)
+bool MarkDownCScanner::accept_char(TextFileBuffer& text, AbstractParseTree& result)
 {
 	if (text.eof() || *text != '\'')
 		return false;
@@ -374,7 +408,7 @@ bool MarkDownScanner::accept_char(TextFileBuffer& text, AbstractParseTree& resul
 	return true;
 }
 
-bool MarkDownScanner::accept_int(TextFileBuffer& text, AbstractParseTree& result)
+bool MarkDownCScanner::accept_int(TextFileBuffer& text, AbstractParseTree& result)
 {
 	if (text.eof() || (   !isdigit(*text)
 				 && (   (*text != '+' && *text != '-') 
@@ -409,7 +443,7 @@ bool MarkDownScanner::accept_int(TextFileBuffer& text, AbstractParseTree& result
 	return true;
 }
 
-bool MarkDownScanner::accept_double(TextFileBuffer& text, AbstractParseTree& result)
+bool MarkDownCScanner::accept_double(TextFileBuffer& text, AbstractParseTree& result)
 {
 
 	if (text.eof() || (   !isdigit(*text) && *text != '.'

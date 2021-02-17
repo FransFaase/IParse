@@ -486,7 +486,7 @@ bool AbstractParseTreeBase::equalIdent( const Ident ident ) const
     return _tree->c.ident == ident.val();
 }
 
-Ident AbstractParseTreeBase::identName() const
+const Ident AbstractParseTreeBase::identName() const
 {
 	return _tree->c.ident;
 }
@@ -504,7 +504,7 @@ bool AbstractParseTreeBase::isString( const char *str ) const
 		   && _tree->c.str_value->value == str;
 }
 
-String AbstractParseTreeBase::string() const
+const String AbstractParseTreeBase::string() const
 {
 	return _tree->c.str_value;
 }

@@ -130,11 +130,11 @@ type_specifier
         .
 
 struct_or_union_specifier
-        : "struct" ident \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [struct_d]
-        | "struct" \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [struct_n]
+        : "struct" ident \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [struct_d]
+        | "struct" \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [struct_n]
         | "struct" ident  [struct] 
-        | "union" ident \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [union_d]
-        | "union" \nl "{" \inc (\nl struct_declaration) SEQ \dec \nl "}"  [union_n]
+        | "union" ident \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [union_d]
+        | "union" \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [union_n]
         | "union" ident  [union]
         .
 
@@ -149,7 +149,7 @@ struct_declarator
         .
 
 enum_specifier
-        : "enum" ident ("{" enumerator LIST "}") OPT [enum]
+        : "enum" ident ("{" ("..." "," [elipses]) OPT enumerator LIST "}") OPT [enum]
         .
 
 enumerator
@@ -206,12 +206,13 @@ initializer
         | "{" \inc initializer LIST "," OPT \dec \nl "}"  [initializer]
         .
 decl_or_stat 
-        : declaration SEQ OPT statement SEQ OPT
+        : ("..." [elipses]) OPT declaration SEQ OPT statement SEQ OPT
         .
 
 statement
         : \dec \nl (ident | "case" constant_expr | "default") ":" \inc statement  [label]
         | \dec \nl "{" \inc decl_or_stat \dec \nl "}" \inc [brackets]
+        | \nl macro_ident (\nows "(" expr LIST ")") OPT [macro]
         | \nl expr OPT ";"
         | \nl "if" \s "(" expr ")" \inc statement  (\dec \nl "else" \inc statement) OPT \dec [if]
         | \nl "switch" \s "(" expr ")" \inc statement \dec [switch]

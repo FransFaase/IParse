@@ -21,10 +21,10 @@ public:
 	bool isIdent() const;
 	bool isIdent( const Ident ident ) const;
 	bool equalIdent( const Ident ident ) const;
-	Ident identName() const;
+	const Ident identName() const;
 	bool isString() const;
 	bool isString( const char *str ) const;
-	String string() const;
+	const String string() const;
 	const char* stringValue() const;
 	bool isInt() const;
 	long intValue() const;

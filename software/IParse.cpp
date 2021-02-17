@@ -18,6 +18,7 @@
 #include "AbstractParseTree.h"
 #include "TextFileBuffer.h"
 #include "Scanner.h"
+#include "MarkDownScanner.h"
 #include "ProtosScanner.h"
 #include "RcScanner.h"
 #include "PascalScanner.h"
@@ -418,6 +419,7 @@ int main(int argc, char *argv[])
 	const char* constLL1Heap = "LL1Heap";
 	const char* constPar = "Par";
 	const char* constBasic = "Basic";
+	const char* constMarkDownC = "MarkDownC";
 	const char* constWhiteSpace = "WhiteSpace";
 	const char* constProtos = "Protos";
 	const char* constResource = "Resource";
@@ -440,6 +442,7 @@ int main(int argc, char *argv[])
 			   "   -LL1Stack   use LL1 stack parser\n"
 			   "   -Par        use parallel parser\n"
 			   "   -WhiteSpace use white space scanner\n"
+			   "   -MarkDownC  use MarkDown-C scanner\n"
 			   "   -Protos     use Protos scanner\n"
 			   "   -Resource   use Resource scanner\n"
 			   "   -Pascal     use Pascal scanner\n"
@@ -520,34 +523,22 @@ int main(int argc, char *argv[])
 			selected_parser = constLL1Heap;
 		else if (!strcmp(arg, "-Par"))
 			selected_parser = constPar;
+        else if (!strcmp(arg, "-MarkDownC"))
+			use_scanner = constMarkDownC;
         else if (!strcmp(arg, "-WhiteSpace"))
-		{
 			use_scanner = constWhiteSpace;
-		}
         else if (!strcmp(arg, "-Protos"))
-		{
 			use_scanner = constProtos;
-		}
         else if (!strcmp(arg, "-Resource"))
-		{
 			use_scanner = constResource;
-		}
         else if (!strcmp(arg, "-Pascal"))
-		{
 			use_scanner = constPascal;
-		}
         else if (!strcmp(arg, "-ColourCoding"))
-		{
 			use_scanner = constColourCoding;
-		}
         else if (!strcmp(arg, "-Raw"))
-		{
 			use_scanner = constRaw;
-		}
         else if (!strcmp(arg, "-Bare"))
-		{
 			use_scanner = constBare;
-		}
         else if (!strcmp(arg, "-p") && i + 1 < argc)
         {   
             char *file_name = argv[++i];
@@ -737,6 +728,8 @@ int main(int argc, char *argv[])
 										 : (AbstractParser*)new ParParser();
 				AbstractScanner* scanner = use_scanner == constWhiteSpace
 										 ? (AbstractScanner*)new WhiteSpaceScanner()
+										 : use_scanner == constMarkDownC
+										 ? (AbstractScanner*)new MarkDownCScanner()
 										 : use_scanner == constProtos
 										 ? (AbstractScanner*)new ProtosScanner()
 										 : use_scanner == constResource
