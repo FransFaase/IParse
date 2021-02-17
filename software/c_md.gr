@@ -130,11 +130,11 @@ type_specifier
         .
 
 struct_or_union_specifier
-        : "struct" ident \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [struct_d]
-        | "struct" \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [struct_n]
+        : "struct" ident \nl "{" \inc (\nl "..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [struct_d]
+        | "struct" \nl "{" \inc (\nl "..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [struct_n]
         | "struct" ident  [struct] 
-        | "union" ident \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [union_d]
-        | "union" \nl "{" \inc ("..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [union_n]
+        | "union" ident \nl "{" \inc (\nl "..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [union_d]
+        | "union" \nl "{" \inc (\nl "..." [elipses]) OPT (\nl struct_declaration) SEQ \dec \nl "}"  [union_n]
         | "union" ident  [union]
         .
 
@@ -206,7 +206,7 @@ initializer
         | "{" \inc initializer LIST "," OPT \dec \nl "}"  [initializer]
         .
 decl_or_stat 
-        : ("..." [elipses]) OPT declaration SEQ OPT statement SEQ OPT
+        : (\nl "..." [elipses]) OPT declaration SEQ OPT statement SEQ OPT
         .
 
 statement
@@ -227,6 +227,8 @@ statement
         | \nl "return" expr OPT ";"  [ret]
         .
 
-root    : (\nl declaration) SEQ OPT eof
+root    : ( \nl declaration
+          | \nl "#define" macro_ident (\nows "(" ident LIST ")") OPT macro_def [macro]
+          ) SEQ OPT eof
         .
 

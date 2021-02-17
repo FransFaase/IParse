@@ -28,6 +28,7 @@ Ident MarkDownCScanner::id_cstring = "cstring";
 Ident MarkDownCScanner::id_char = "char";
 Ident MarkDownCScanner::id_int = "int";
 Ident MarkDownCScanner::id_double = "double";
+Ident MarkDownCScanner::id_macro_def = "macro_def";
 
 void MarkDownCScanner::skipSpace(TextFileBuffer& text)
 {
@@ -47,7 +48,7 @@ void MarkDownCScanner::skipSpace(TextFileBuffer& text)
 	*/
 	for(;;)
 	{   
-		fprintf(stderr, "%d,%d %s\n", text.line(), text.column(), _in_text ? "in text" : "in code");
+		//fprintf(stderr, "%d,%d %s\n", text.line(), text.column(), _in_text ? "in text" : "in code");
 		if (_in_text)
 		{
 			if (text.eof())
@@ -113,7 +114,7 @@ void MarkDownCScanner::skipSpace(TextFileBuffer& text)
 				break;
 		}
 	}
-	fprintf(stderr, "At %d,%d\n", text.line(), text.column());
+	//fprintf(stderr, "At %d,%d\n", text.line(), text.column());
 
 	/* Fixed part. Do not modify!! */
 	_last_space_end_pos = text;
@@ -173,6 +174,8 @@ bool MarkDownCScanner::acceptTerminal(TextFileBuffer& text, Ident name, Abstract
 		return accept_int(text, result);
 	if (name == id_double)
 		return accept_double(text, result);
+	if (name == id_macro_def)
+		return accept_macro_def(text, result);
 
 	return false;
 }
@@ -470,6 +473,52 @@ bool MarkDownCScanner::accept_double(TextFileBuffer& text, AbstractParseTree& re
 	result = v;
 	return true;
 }
+
+bool MarkDownCScanner::accept_macro_def(TextFileBuffer& text, AbstractParseTree& result)
+{
+	String string;
+	String::filler filler(string);
+	
+	for (;;)
+	{
+		if (text.eof() || *text == '\0')
+			break;
+		if (*text == '\n')
+		{
+			text.next();
+			break;
+		}
+		if (*text == '\r')
+		{
+			text.next();
+		}
+		else if (*text == '\\' && (text[1] == '\r' || text[1] == '\n'))
+		{
+			text.next();
+			if (   *text == '\r' && text[1] == '\n'
+			    || *text == '\n' && text[1] == '\r')
+			{
+				text.next();
+				text.next();
+			}
+			else if (*text == '\n')
+				text.next();
+		}
+		else
+		{
+			filler << *text;
+			text.next();
+		}
+	}
+	filler << '\0';
+
+	skipSpace(text);
+
+	result = string;
+	return true;
+	
+}
+
 
 
 

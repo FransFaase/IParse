@@ -19,6 +19,7 @@ private:
 	bool accept_char(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_int(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_double(TextFileBuffer& text, AbstractParseTree& result);
+	bool accept_macro_def(TextFileBuffer& text, AbstractParseTree& result);
 
 protected:
 	TextFilePos _last_space_pos;
@@ -37,6 +38,7 @@ private:
 	static Ident id_char;
 	static Ident id_int;
 	static Ident id_double;
+	static Ident id_macro_def;
 };
 
 

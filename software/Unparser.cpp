@@ -202,22 +202,24 @@ void BasicTerminalUnparser::unparseLiteral(const char* literal)
 		_state = ' ';
 	}
 
-	if (isalnum((unsigned char)literal[0]))
-	{
-		if (_state == 'a')
-			_stream.emit(' ');
-		_state = 'a';
-	}
-	else
-		_state = ',';
-
+	if (isalnum(*literal) && _state == 'a')
+		_stream.emit(' ');
+	
+	unsigned char last_ch;
 	for (const char *s = literal; *s != '\0'; s++)
+	{
+		last_ch = *s; 
 		_stream.emit(*s);
-	if (literal[0] == ',' && literal[1] == '\0')
+	}
+	
+	if (last_ch == ',' && literal[1] == '\0')
 	{
 		_stream.emit(' ');
 		_state = ' ';
 	}
+	else
+		_state = isalnum(last_ch) ? 'a' : ',';
+
 }
 
 void BasicTerminalUnparser::unparseWhiteSpace(Ident terminal)
@@ -544,6 +546,43 @@ void ResourceTerminalUnparser::unparseWhiteSpace(Ident terminal)
 			_stream.emit(' ');
 		_state = ' ';
 	}
+}
+
+bool MarkDownCTerminalUnparser::match(Ident terminal, const AbstractParseTree& tree)
+{
+	static Ident id_macro_ident = "macro_ident";
+	static Ident id_macro_def = "macro_def";
+	
+	if (terminal == id_macro_ident)
+		return tree.isIdent();
+	if (terminal == id_macro_def)
+		return tree.isString();
+	
+	return BasicTerminalUnparser::match(terminal, tree);
+}
+
+void MarkDownCTerminalUnparser::unparse(Ident terminal, const AbstractParseTree& tree)
+{
+	static Ident id_macro_ident = "macro_ident";
+	static Ident id_macro_def = "macro_def";
+	static Ident id_ident = "ident";
+	
+	if (terminal == id_macro_ident)
+	{
+		BasicTerminalUnparser::unparse(id_ident, tree);
+		return;
+	}
+	if (terminal == id_macro_def)
+	{
+		_stream.emit(' ');
+		for (const char *s = tree.stringValue(); *s != '\0'; s++)
+		{
+			_stream.emit(*s);
+		}
+		return;
+	}
+	
+	BasicTerminalUnparser::unparse(terminal, tree);
 }
 
 

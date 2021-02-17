@@ -1,42 +1,38 @@
 
-#define VERSION "1.7 of February 17, 2021."
+#define VERSION "0.1 of February 17, 2021."
 
 /* 
 	First some standard definitions.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <malloc.h>
-#include <string.h>
-//#include <unistd.h>
-#include <ctype.h>
-#include <assert.h>
-
-#include "Ident.h"
-#include "String.h"
-#include "AbstractParseTree.h"
-#include "TextFileBuffer.h"
-#include "Scanner.h"
-#include "MarkDownScanner.h"
-#include "ProtosScanner.h"
-#include "RcScanner.h"
-#include "PascalScanner.h"
-#include "AbstractParser.h"
-#include "BTParser.h"
-#include "BTHeapParser.h"
-#include "LL1Parser.h"
-#include "LL1HeapParser.h"
-#include "ParParser.h"
-#include "TextReader.h"
-#include "XMLParser.h"
-#include "Unparser.h"
+#include "Ident.cpp"
+#include "String.cpp"
+#include "AbstractParseTree.cpp"
+#include "TextFileBuffer.cpp"
+#include "Scanner.cpp"
+#include "MarkDownScanner.cpp"
+//#include "ProtosScanner.cpp"
+//#include "RcScanner.cpp"
+//#include "PascalScanner.cpp"
+#include <unistd.h>
+#include "ParserGrammar.cpp"
+#include "AbstractParser.cpp"
+#include "BTParser.cpp"
+//#include "BTHeapParser.cpp"
+//#include "LL1Parser.cpp"
+//#include "LL1HeapParser.cpp"
+//#include "ParParser.cpp"
+#include "CodePages.cpp"
+#include "Streams.cpp"
+#include "TextReader.cpp"
+//#include "XMLParser.cpp"
+#include "Unparser.cpp"
 
 #define ASSERT assert
 
 
 
-
+/*
 class SContext
 {
 public:
@@ -71,7 +67,7 @@ private:
 };
 
 SContext* SContext::_top = 0;
-
+*/
 
 
 
@@ -89,6 +85,7 @@ SContext* SContext::_top = 0;
 	the input grammar of IParse.
 */
 
+#if 0
 int print_tree_depth = 0;
 static void print_tree_rec( FILE *f, const AbstractParseTree& tree );
  
@@ -223,7 +220,7 @@ static void print_tree_to_xml( FILE *f, const AbstractParseTree& tree )
     }
 };
 
-
+#endif
 
 
 /*
@@ -382,7 +379,7 @@ void init_IParse_grammar( AbstractParseTree& root )
 #undef CLOSE
 }
 
-
+#if 0
 /*
 	Symbol tables
 	~~~~~~~~~~~~~
@@ -405,7 +402,7 @@ struct context_entry_t
 	const char *ident_class;
 	ident_def_p defs;
 };
-
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -431,37 +428,7 @@ int main(int argc, char *argv[])
 	const char* use_scanner = constBasic;
 
     if (argc == 1)
-    {   printf("Usage: %s <grammar-file> <input-file>\n"
-               "\n"
-               "  options\n"
-			   "   -plain      read input file verbatim (default)\n"
-			   "   -cp1252     read input file as code page 1252\n"
-			   "   -utf16      read input file as UTF-16\n"
-			   "   -BTStack    use back-tracking stack parser\n"
-			   "   -BTHeap     use back-tracking heap parser\n"
-			   "   -LL1Stack   use LL1 stack parser\n"
-			   "   -Par        use parallel parser\n"
-			   "   -WhiteSpace use white space scanner\n"
-			   "   -MarkDownC  use MarkDown-C scanner\n"
-			   "   -Protos     use Protos scanner\n"
-			   "   -Resource   use Resource scanner\n"
-			   "   -Pascal     use Pascal scanner\n"
-			   "   -ColourCoding use colour coding scanner\n"
-			   "   -Raw        use raw scanner\n"
-			   "   -Bare       use bare scanner\n"
-			   "   -p <fn>     print parse tree\n"
-			   "   -pc <fn>    print parse tree (compact)\n"
-               "   -xml <fn>   output parse tree as XML\n"
-               "   -o <fn>     output tree to C file\n"
-			   "   -oac <fn>   output grammar to C file\n"
-			   "   -unparse <fn> unparses the parse tree\n"
-               "   +ds         debug scanning (full)\n"
-               //"   +dss      debug scanning (normal)\n"
-               "   -ds         no debug scanning\n"
-               "   +dp         debug parsing\n"
-               "   -dp         no debug parsing\n"
-               "   +dn         debug non-terminals\n"
-               "   -dn         no debug non-terminals\n", argv[0]);
+    {   printf("Usage: %s <mark down files>\n", argv[0]);
         return 0;
     }
 
@@ -481,6 +448,69 @@ int main(int argc, char *argv[])
 	AbstractParseTree tree;
 	init_IParse_grammar(tree);
 
+
+	{
+		FILE *fin = fopen("c_md.gr", "rt");
+		if (fin == 0)
+		{
+			fprintf(stderr, "Error: Cannot open c_md.gr\n");
+			return 0;
+		}
+
+		TextFileBuffer textBuffer;
+		plainFileReader.read(fin, textBuffer);
+		AbstractParser* parser = (AbstractParser*)new BTParser();
+		AbstractScanner* scanner = (AbstractScanner*)new BasicScanner();
+		
+		parser->setScanner(scanner);
+		//parser->setDebugLevel(debug_nt, debug_parse, debug_scan);
+		parser->loadGrammar(tree);
+		grammarTree = tree;
+
+		AbstractParseTree new_tree;
+		if (!parser->parse(textBuffer, "root", new_tree))
+		{
+			parser->printExpected(stdout, "c_md.gr", textBuffer);
+			return 0;
+		}
+		textBuffer.release();
+
+	   	tree.attach(new_tree);
+
+		fclose(fin);
+		delete scanner;
+		delete parser;
+	}
+		
+	AbstractParser* parser = (AbstractParser*)new BTParser();
+	AbstractScanner* scanner = (AbstractScanner*)new MarkDownCScanner();
+	parser->setScanner(scanner);
+	parser->loadGrammar(tree);
+
+    for (int i = 1; i < argc; i++)
+	{
+		const char* filename = argv[i];
+       	FILE *fin = fopen(filename, "rt");
+
+        if (fin != 0)
+        {
+			TextFileBuffer textBuffer;
+			plainFileReader.read(fin, textBuffer);
+			
+			AbstractParseTree new_tree;
+			if (!parser->parse(textBuffer, "root", new_tree))
+			{
+				parser->printExpected(stdout, filename, textBuffer);
+				return 0;
+			}
+			textBuffer.release();
+            fclose(fin);
+            
+            new_tree.print(stdout, false);
+        }
+	}
+
+#if 0
     for (int i = 1; i < argc; i++)
     {   char *arg = argv[i];
  
@@ -769,6 +799,7 @@ int main(int argc, char *argv[])
             }
         }
     }
+#endif
 
 	tree.clear();
 

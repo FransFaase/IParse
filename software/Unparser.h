@@ -55,6 +55,13 @@ private:
 	char _state;
 };
 
+class MarkDownCTerminalUnparser : public BasicTerminalUnparser
+{
+public:
+	virtual bool match(Ident terminal, const AbstractParseTree& tree);
+	virtual void unparse(Ident terminal, const AbstractParseTree& tree);
+};
+
 class Unparser : public Grammar
 {
 public:
