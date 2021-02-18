@@ -998,6 +998,26 @@ void AbstractParseTreeCursor::replaceBy(AbstractParseTree lhs)
 	_cursor->assign(lhs._tree);
 }
 
+void AbstractParseTreeCursor::appendChild(const AbstractParseTreeCursor& child)
+{
+	if (!attached() || !isList())
+	{
+		assert(0); // assignment of new tree to detached cursor
+		return;
+	}
+
+	if (_cursor->parent != 0)
+		_cursor->parent->make_private_copy();
+
+    list_t **r_list = &_tree->c.parts;
+
+    while (*r_list != 0)
+        r_list = &(*r_list)->next;
+
+    *r_list = new list_t();
+    tree_t::assign((*r_list)->first, child._tree);
+}
+
 
 void AbstractParseTreeCursor::attach()
 {

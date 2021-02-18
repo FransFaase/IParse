@@ -143,6 +143,8 @@ public:
 	AbstractParseTreeCursor& operator=(const AbstractParseTreeIteratorCursor &it);
 
 	void replaceBy(AbstractParseTree tree);
+	
+	void appendChild(const AbstractParseTreeCursor& cursor);
 
 private:
 	void attach();

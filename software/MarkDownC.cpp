@@ -404,6 +404,186 @@ struct context_entry_t
 };
 #endif
 
+class CodeCollector
+{
+public:
+	CodeCollector()
+	{
+		defines = AbstractParseTree::makeList();
+		enumdecls = AbstractParseTree::makeList();
+		typedefs = AbstractParseTree::makeList();
+		typedecls = AbstractParseTree::makeList();
+		others = AbstractParseTree::makeList();
+	}
+
+	void Process(AbstractParseTree tree)
+	{
+		static Ident id_typedef("typedef");
+		static Ident id_macro("macro");
+		static Ident id_enum("enum");
+		static Ident id_struct_d("struct_d");
+		static Ident id_elipses("elipses");
+		
+		AbstractParseTreeCursor definesCursor(defines);
+		AbstractParseTreeCursor enumdeclsCursor(enumdecls);
+		AbstractParseTreeCursor typedefsCursor(typedefs);
+		AbstractParseTreeCursor typedeclsCursor(typedecls);
+		AbstractParseTreeCursor othersCursor(others);
+		
+		AbstractParseTreeCursor treeCursor(tree);
+		for (AbstractParseTreeIteratorCursor declIt(treeCursor); declIt.more(); declIt.next())
+		{
+			AbstractParseTreeCursor decl(declIt);
+			if (decl.isTree(id_macro))
+			{
+				definesCursor.appendChild(decl);
+			}
+			else if (decl.part(1).isList())
+			{
+				AbstractParseTreeCursor kind = AbstractParseTreeCursor(decl).part(1).part(1);
+				if (kind.isTree(id_enum))
+				{
+					Ident enum_name = kind.part(1).identName();
+					AbstractParseTreeCursor earlierDecl;
+					for (AbstractParseTreeIteratorCursor enumdeclIt(enumdeclsCursor); enumdeclIt.more(); enumdeclIt.next())
+					{
+						AbstractParseTreeCursor enumdecl = AbstractParseTreeCursor(enumdeclIt).part(1).part(1);
+						if (enumdecl.part(1).identName() == enum_name)
+						{
+							earlierDecl = enumdecl;
+							break;
+						}
+					}
+					if (kind.part(2).part(1).isTree(id_elipses))
+					{
+						//printf("enum %s with elipses\n", enum_name.val());
+						if (!earlierDecl.attached())
+						{
+							printf("Error %d.%d: enum %s with elipses has no earlier definition\n",
+								kind.line(), kind.column(), enum_name.val());
+						}
+						else
+						{
+							//printf("Combine: ");
+							//earlierDecl.print(stdout, true);
+							//printf("\nWith:    ");
+							//kind.print(stdout, true);
+							//printf("\n");
+							AbstractParseTreeCursor enumerators = AbstractParseTreeCursor(kind.part(2).part(2));
+							for (AbstractParseTreeIteratorCursor newIt(enumerators); newIt.more(); newIt.next())
+								earlierDecl.part(2).part(2).appendChild(AbstractParseTreeCursor(newIt));
+							//printf("Into:    ");
+							//earlierDecl.print(stdout, true);
+							//printf("\n");
+						}
+					}
+					else
+					{
+						if (earlierDecl.attached())
+						{
+							printf("Warning %d.%d: redefinition of enum %s from %d.%d\n",
+								kind.line(), kind.column(), enum_name.val(), earlierDecl.line(), earlierDecl.column());
+						}
+						else
+						{
+							enumdeclsCursor.appendChild(decl);
+						}
+					}
+				}
+				else if (kind.isTree(id_typedef))
+				{
+					typedefsCursor.appendChild(decl);
+				}
+				else if (kind.isTree(id_struct_d))
+				{
+					typedeclsCursor.appendChild(decl);
+				}
+				else
+				{
+					othersCursor.appendChild(decl);
+				}
+			}
+			else
+			{
+				othersCursor.appendChild(decl);
+			}
+		}
+	}
+	
+	void print()
+	{
+		printf("// *****\n");
+		defines.print(stdout, false);
+		printf("// *****\n");
+		enumdecls.print(stdout, false);
+		printf("// *****\n");
+		typedefs.print(stdout, false);
+		printf("// *****\n");
+		typedecls.print(stdout, false);
+		printf("// *****\n");
+		others.print(stdout, false);
+	}
+	
+	void unparse(const AbstractParseTree &grammarTree)
+	{
+		Unparser unparser;
+		MarkDownCTerminalUnparser markDownCTerminalUnparser;
+		unparser.setTerminalUnparser(&markDownCTerminalUnparser);
+		class UnparseErrorCollector : public AbstractUnparseErrorCollector
+		{
+		public:
+			UnparseErrorCollector(FILE *f) : _f(f) {}
+			virtual void errorDifferentRulesWithSameType(Ident type, GrammarRule* rule1, GrammarRule* rule2)
+			{
+				fprintf(_f, "Error: different rules with type %s\n", type.val());
+				print_rule(rule1);
+				print_rule(rule2);
+			}
+			virtual void warningTypeReachedThroughDifferentPaths(Ident type, GrammarRule* rule, GrammarRule *rule1, GrammarRule *rule2)
+			{
+				fprintf(_f, "Warning: rule for type %s reached through different paths\n", type.val());
+				print_rule(rule);
+				print_rule(rule1);
+				print_rule(rule2);
+			}
+		private:
+			void print_rule(GrammarRule* rule)
+			{
+				if (rule != 0)
+				{
+					fprintf(_f, "\t%ld.%ld ", rule->line, rule->column);
+					rule->print(_f);
+					fprintf(_f, "\n");
+				}
+				else
+					fprintf(_f, "\t<empty rule>\n");
+			}
+			FILE *_f;
+		};
+		UnparseErrorCollector unparseErrorCollector(stderr);
+		unparser.loadGrammarForUnparse(grammarTree, &unparseErrorCollector);
+		CharStreamToFile charToTextFileStream(stdout, /*text*/false);
+		
+		printf("// *** defines ***\n");
+		unparser.unparse(defines, "root", &charToTextFileStream);
+		printf("\n\n// *** enum declarations ***");
+		//enumdecls.print(stdout, false);
+		unparser.unparse(enumdecls, "root", &charToTextFileStream);
+		printf("\n\n// *** typedefs ***");
+		unparser.unparse(typedefs, "root", &charToTextFileStream);
+		printf("\n\n// *** struct declarations ***");
+		unparser.unparse(typedecls, "root", &charToTextFileStream);
+		printf("\n\n// *** others ***");
+		unparser.unparse(others, "root", &charToTextFileStream);
+	}
+private:
+	AbstractParseTree defines;
+	AbstractParseTree typedefs;
+	AbstractParseTree enumdecls;
+	AbstractParseTree typedecls;
+	AbstractParseTree others;
+};
+
 int main(int argc, char *argv[])
 {
 	bool debug_nt = false;
@@ -481,12 +661,14 @@ int main(int argc, char *argv[])
 		delete scanner;
 		delete parser;
 	}
-		
+	
 	AbstractParser* parser = (AbstractParser*)new BTParser();
 	AbstractScanner* scanner = (AbstractScanner*)new MarkDownCScanner();
 	parser->setScanner(scanner);
 	parser->loadGrammar(tree);
 
+	CodeCollector codeCollector;
+	
     for (int i = 1; i < argc; i++)
 	{
 		const char* filename = argv[i];
@@ -506,9 +688,11 @@ int main(int argc, char *argv[])
 			textBuffer.release();
             fclose(fin);
             
-            new_tree.print(stdout, false);
+            codeCollector.Process(new_tree);
         }
 	}
+	
+	codeCollector.unparse(tree);
 
 #if 0
     for (int i = 1; i < argc; i++)
