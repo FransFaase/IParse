@@ -1044,7 +1044,7 @@ AbstractParseTreeCursor AbstractParseTreeCursor::part(int n)
 	return result;
 }
 
-AbstractParseTreeCursor& AbstractParseTreeCursor::operator =(const AbstractParseTreeCursor& cursor)
+AbstractParseTreeCursor& AbstractParseTreeCursor::operator=(const AbstractParseTreeCursor& cursor)
 {
 	detach();
 	_cursor = cursor._cursor;
@@ -1052,7 +1052,7 @@ AbstractParseTreeCursor& AbstractParseTreeCursor::operator =(const AbstractParse
 	return *this;
 }
 
-AbstractParseTreeCursor& AbstractParseTreeCursor::operator =(const AbstractParseTreeIteratorCursor& it)
+AbstractParseTreeCursor& AbstractParseTreeCursor::operator=(const AbstractParseTreeIteratorCursor& it)
 {
 	detach();
 	if (it.attached())
@@ -1061,6 +1061,33 @@ AbstractParseTreeCursor& AbstractParseTreeCursor::operator =(const AbstractParse
 	return *this;
 }
 
+bool AbstractParseTreeCursor::operator==(const AbstractParseTreeCursor& rhs) const
+{
+	if (!attached() || !rhs.attached())
+		return !attached() && !rhs.attached();
+	if (_tree == NULL || rhs._tree == NULL)
+		return _tree == NULL && rhs._tree == NULL;
+	if (type() != rhs.type())
+		return false;
+	if (isIdent())
+		return identName() == rhs.identName();
+	if (isString())
+		return strcmp(string(), rhs.string()) == 0;
+	if (isDouble())
+		return doubleValue() == rhs.doubleValue();
+	if (isChar())
+		return charValue() == rhs.charValue();
+	if (isTree() || isList())
+	{
+		AbstractParseTreeIteratorCursor lhsIt(*this);
+		AbstractParseTreeIteratorCursor rhsIt(rhs);
+		for (; lhsIt.more() && rhsIt.more(); lhsIt.next(), rhsIt.next())
+			if (!(AbstractParseTreeCursor(lhsIt) == AbstractParseTreeCursor(rhsIt)))
+				return false;
+		return !lhsIt.more() && !rhsIt.more();
+	}
+	return false;
+}
 
 void AbstractParseTreeCursor::replaceBy(AbstractParseTree lhs)
 {	// We need 'AbstractParseTree lhs' to prevent circular trees when a
@@ -1143,7 +1170,7 @@ void AbstractParseTreeCursor::detach()
 
 // AbstractParseTreeIteratorCursor
 
-AbstractParseTreeIteratorCursor::AbstractParseTreeIteratorCursor(AbstractParseTreeCursor& tree)
+AbstractParseTreeIteratorCursor::AbstractParseTreeIteratorCursor(const AbstractParseTreeCursor tree)
 : AbstractParseTree::iterator(tree._cursor->tree), _parent(tree._cursor), _part_nr(1)
 {
 	_next = _parent->iterator_cursors;

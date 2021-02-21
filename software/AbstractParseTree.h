@@ -164,6 +164,7 @@ public:
 
 	AbstractParseTreeCursor& operator=(const AbstractParseTreeCursor& cursor);
 	AbstractParseTreeCursor& operator=(const AbstractParseTreeIteratorCursor &it);
+	bool operator==(const AbstractParseTreeCursor& rhs) const;
 
 	void replaceBy(AbstractParseTree tree);
 	
@@ -181,7 +182,7 @@ class AbstractParseTreeIteratorCursor : public AbstractParseTree::iterator
 	friend class AbstractParseTreeCursor;
 	friend struct tree_cursor_t;
 public:
-	AbstractParseTreeIteratorCursor(AbstractParseTreeCursor& tree);
+	AbstractParseTreeIteratorCursor(const AbstractParseTreeCursor tree);
 	~AbstractParseTreeIteratorCursor();
 	void next();
 
