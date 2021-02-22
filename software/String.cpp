@@ -17,6 +17,10 @@ String::String(string_t *str)
 	if (_str != 0)
 		_str->refcount++;
 }
+String::~String()
+{
+	clear();
+}
 void String::clear()
 {
 	if (_str != 0)
@@ -112,7 +116,7 @@ String::filler& String::filler::operator<<(char ch)
 		if (_alloced > 0)
 			strncpy(new_s, _s, _alloced);
 		strncpy(new_s + _alloced, _buffer, 1000);
-		delete _s;
+		delete[] _s;
 		_s = new_s;
 		_alloced += 1000;
 		_i = 0;
@@ -126,7 +130,7 @@ String::filler& String::filler::operator<<(char ch)
 			if (_alloced > 0)
 			{
 				strncpy(_str._str->value, _s, _alloced);
-				delete _s;
+				delete[] _s;
 			}
 			strncpy(_str._str->value + _alloced, _buffer, _i);
 		}

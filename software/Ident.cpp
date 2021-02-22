@@ -18,12 +18,13 @@ const char* strcopy(const char *s)
 	return result;
 }
 
+static hexa_hash_tree_p hash_tree = 0;
+
 const char* Ident::ident_unify(const char* id) const
 /*	Returns a unique address representing the string. If
 	the string does not occure in the store, it is added.
 */
 {
-	static hexa_hash_tree_p hash_tree = 0;
 	hexa_hash_tree_p *r_node = &hash_tree;
 	const char *vs = id;
 	int depth;
@@ -84,6 +85,26 @@ const char* Ident::ident_unify(const char* id) const
 			r_node = &node->data.children[v];
 		}
 	}
+}
+
+void free_hash_tree(hexa_hash_tree_p node)
+{
+	if (node == 0)
+		return;
+	if (node->has_children)
+	{
+		for (int i = 0; i < 16; i++)
+			free_hash_tree(node->data.children[i]);
+		delete[] node->data.children;
+	}
+	else
+		delete[] node->data.string;
+	delete node;
+}
+
+void Ident::Dispose()
+{
+	free_hash_tree(hash_tree);
 }
 
 const char* Ident::_empty = "";

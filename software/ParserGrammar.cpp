@@ -42,6 +42,58 @@ void GrammarCharSet::RangeIterator::next()
 Ident TreeTypeToGrammarRules::id_empty_tree = "<empty>";
 Ident TreeTypeToGrammarRules::id_list = "<list>";
 
+GrammarRule::~GrammarRule()
+{
+    switch(kind)
+    {
+		case RK_TERM:
+		case RK_WS_TERM:
+			delete text.terminal;
+			break;
+		case RK_IDENT:
+			delete text.ident;
+		    break;
+		case RK_CHARSET:
+		case RK_AVOID:
+			delete text.char_set;
+			break;
+		case RK_OR_RULE:
+		case RK_COR_RULE:
+			delete text.or_rules;
+			break;
+		case RK_COLOURCODING:
+			delete text.colour_coding;
+			break;
+    }
+
+    delete next;
+}
+
+GrammarOrRule::~GrammarOrRule()
+{
+	delete rule;
+}
+
+GrammarOrRules::~GrammarOrRules()
+{
+	while (first != 0)
+	{
+		GrammarOrRule *orRule = first;
+		first = first->next;
+		delete orRule;
+	}
+}
+
+GrammarNonTerminal::~GrammarNonTerminal()
+{
+	while (recursive != 0)
+	{
+		GrammarOrRule *orRule = recursive;
+		recursive = recursive->next;
+		delete orRule;
+	}
+}
+
 void GrammarRule::print(FILE *f)
 {   
 	fprintf(f, "[%ld.%ld]", line, column); 
@@ -627,6 +679,28 @@ public:
 	Ident value;
 	GrammarLiteral* next;
 };
+
+Grammar::~Grammar()
+{
+	while (_all_nt != 0)
+	{
+		GrammarNonTerminal* nonTerm = _all_nt;
+		_all_nt = _all_nt->next;
+		delete nonTerm;
+	}
+	while (_all_t != 0)
+	{
+		GrammarTerminal* term = _all_t;
+		_all_t = _all_t->next;
+		delete term;
+	}
+	while (_all_l != 0)
+	{
+		GrammarLiteral* gramLit = _all_l;
+		_all_l = _all_l->next;
+		delete gramLit;
+	}
+}
 
 void Grammar::addLiteral(Ident literal)
 {

@@ -28,6 +28,7 @@ class GrammarOrRule
 {   
 public:
 	GrammarOrRule() : next(0), rule(0), nr_active(0), single_element(0) {}
+	~GrammarOrRule();
 	void print(FILE* fout, bool first = true);
 	GrammarOrRule* next;
     GrammarRule* rule;
@@ -42,6 +43,7 @@ class GrammarOrRules
 {
 public:
 	GrammarOrRules() : first(0), emptyTreeRules(0), treeNameToRulesMap(0), listRules(0), terminalToRulesMap(0) {}
+	~GrammarOrRules();
 	GrammarOrRule* first;
 	TreeTypeToGrammarRules* emptyTreeRules;
 	TreeTypeToGrammarRules* treeNameToRulesMap;
@@ -53,6 +55,7 @@ class GrammarNonTerminal : public GrammarOrRules
 {
 public:
 	GrammarNonTerminal(Ident n_name) : name(n_name), next(0), recursive(0) {}
+	~GrammarNonTerminal();
 	GrammarNonTerminal* next;
     Ident name;
     GrammarOrRule* recursive;
@@ -120,6 +123,7 @@ class GrammarRule
 {
 public:
 	GrammarRule() : next(0), optional(false), sequential(false), avoid(false), nongreedy(false), last_fail_pos(-1) {}
+	~GrammarRule();
 	void print(FILE* fout);
 	GrammarRule* next;
     bool optional;
@@ -150,6 +154,7 @@ public:
 	  : top_rule(n_top_rule), rec_nt(n_rec_nt), 
 		is_single(n_or_rule->tree_name.empty() && n_rec_nt == 0 && n_or_rule->single_element != 0), 
 		rule(n_or_rule->rule), next(0) {}
+	~TreeTypeToGrammarRule();
 	GrammarRule* top_rule;
 	GrammarNonTerminal *rec_nt;
 	bool is_single;
@@ -160,7 +165,8 @@ public:
 class TreeTypeToGrammarRules
 {
 public:
-	TreeTypeToGrammarRules(Ident n_name) : name(n_name), nr_alternatives(0), alternatives(0), next(0) {} 
+	TreeTypeToGrammarRules(Ident n_name) : name(n_name), nr_alternatives(0), alternatives(0), next(0) {}
+	~TreeTypeToGrammarRules();
 	void add(TreeTypeToGrammarRule *alternative)
 	{
 		nr_alternatives++;
@@ -194,6 +200,7 @@ class Grammar
 {
 public:
 	Grammar() : _all_nt(0), _all_t(0), _all_l(0), _for_unparse(false) {}
+	~Grammar();
 	void loadGrammar(const AbstractParseTree& root);
 	void loadGrammarForUnparse(const AbstractParseTree& root, AbstractUnparseErrorCollector *unparseErrorCollector);
 	GrammarNonTerminal* findNonTerminal(Ident name);

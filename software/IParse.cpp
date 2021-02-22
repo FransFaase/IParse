@@ -406,9 +406,16 @@ struct context_entry_t
 	ident_def_p defs;
 };
 
+void dispose_at_exit()
+{
+	AbstractParseTree::Dispose();
+	Ident::Dispose();
+}
 
 int main(int argc, char *argv[])
 {
+	atexit(dispose_at_exit);
+
 	bool debug_nt = false;
 	bool debug_parse = false;
 	bool debug_scan = false;
@@ -759,6 +766,9 @@ int main(int argc, char *argv[])
 				}
 				textBuffer.release();
 
+				delete parser;
+				delete scanner;
+
                	tree.attach(new_tree);
 
                 fclose(fin);
@@ -771,6 +781,7 @@ int main(int argc, char *argv[])
     }
 
 	tree.clear();
+	grammarTree.clear();
 
     return 0;
 }

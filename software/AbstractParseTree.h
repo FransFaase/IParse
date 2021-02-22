@@ -117,6 +117,8 @@ public:
 	void setFileName(const char* filename);
 	void setLineColumn(int line, int column);
 
+	static void Dispose();
+
 private:
 	AbstractParseTree(tree_t *tree);
 	void release();

@@ -585,7 +585,7 @@ void BTParser::free_solutions()
 			sol = next_sol;
 		}
   	}
-	delete _solutions;
+	delete[] _solutions;
 	_solutions = 0;
 }
 

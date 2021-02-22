@@ -22,7 +22,7 @@ struct string_t
 		value = new char[len+1];
 		memset(value, '\0', len+1);
 	}
-	~string_t() { delete value; }
+	~string_t() { delete[] value; }
 
 	long refcount;
 	char *value;

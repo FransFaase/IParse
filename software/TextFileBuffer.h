@@ -9,7 +9,7 @@ public:
 	TextFileBuffer();
 
 	void assign(const char* str, unsigned long len, bool utf8encoded = false);
-	void release() { delete (char*)_buffer; _buffer = 0; }
+	void release() { delete[] (char*)_buffer; _buffer = 0; }
 	unsigned long length() { return _len; }
 
 	TextFileBuffer& operator=(const TextFileBuffer& lhs)

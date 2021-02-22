@@ -13,6 +13,7 @@ public:
 	String(const char *str);
 	String(const char *str, const char *till);
 	String(string_t *str);
+	~String();
 	String &operator=(const char *rhs);
 	String &operator=(string_t *rhs);
 	String &operator=(const String &rhs);

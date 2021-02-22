@@ -51,6 +51,7 @@ struct tree_t
 
 	void* operator new(size_t size); 
 	void operator delete(void *data);
+	static void Dispose();
 	static long alloced;
 private:
 	static tree_t *_old;
@@ -66,6 +67,7 @@ struct list_t
 
 	void* operator new(size_t size); 
 	void operator delete(void *data);
+	static void Dispose();
 private:
 	static list_t *_old;
 };
@@ -91,7 +93,6 @@ void* tree_t::operator new(size_t size)
 	if (_old == 0)
 		return malloc(size);
 	tree_t *new_tree = _old;
-	new_tree = _old;
 	_old = (tree_t*)_old->type;
 
 	//printf("%8X +A ", new_tree);
@@ -108,6 +109,16 @@ void tree_t::operator delete(void *data)
 	alloced--;
 }
 
+void tree_t::Dispose()
+{
+	while (_old != 0)
+	{
+		tree_t *old = _old;
+		_old = (tree_t*)_old->type;
+		free(old);
+	}
+}
+
 
 bool tree_t::can_have_parts()
 {
@@ -122,7 +133,7 @@ bool tree_t::can_have_parts()
 
 void tree_t::release()
 {
-	//printf("%8X -- (%d) ", tree, tree->refcount-1);
+	//printf("%8X -- (%lu) ", this, refcount-1);
 	//SContext::print(stdout);
 	//printf("\n");
 
@@ -130,8 +141,12 @@ void tree_t::release()
 
 	if (--refcount == 0)
     {
-        if (can_have_parts())
-        {   list_t *list = c.parts;
+		if (type == tt_str_value)
+		{
+			delete c.str_value;
+		}
+		else if (can_have_parts())
+		{   list_t *list = c.parts;
 
             while (list != 0)
             {   list_t *next = list->next;
@@ -234,6 +249,16 @@ void list_t::operator delete(void *data)
 	_old = list;
 }
 
+void list_t::Dispose()
+{
+	while (_old != 0)
+	{
+		list_t *old = _old;
+		_old = _old->next;
+		free(old);
+	}
+}
+
 void tree_t::assign(tree_t *&d, tree_t *s)
 {
   tree_t *old_d = d;
@@ -282,8 +307,6 @@ tree_t *tree_t::clone()
 	result->column = column;
 	return result;
 }
-
-
 
 struct tree_cursor_t
 {
@@ -349,6 +372,7 @@ struct tree_cursor_t
 
 	void* operator new(size_t size); 
 	void operator delete(void *data);
+	static void Dispose();
 	static long alloced;
 private:
 	static tree_cursor_t *_old;
@@ -378,6 +402,16 @@ void tree_cursor_t::operator delete(void *data)
 	tree_cursor_t *tree_cursor = (tree_cursor_t*)data;
 	tree_cursor->parent = _old;
 	_old = tree_cursor;
+}
+
+void tree_cursor_t::Dispose()
+{
+	while (_old != 0)
+	{
+		tree_cursor_t *old = _old;
+		_old = _old->parent;
+		free(old);
+	}
 }
 
 void tree_cursor_t::detach()
@@ -710,7 +744,8 @@ void AbstractParseTree::createStringAtom( const char *str )
 
 void AbstractParseTree::createStringAtom( String &str )
 {
-	String keep(str); // in case this is a self assignment
+	if (_tree != 0 && _tree->type == tree_t::tt_str_value && str._str != 0 && _tree->c.str_value == str._str)
+		return; // self assignment
 	release();
 	_tree = new tree_t(str._str);
 }
@@ -883,6 +918,14 @@ bool AbstractParseTree::iterator::isTree(Ident name)
 void AbstractParseTree::iterator::next()
 {
 	_list = _list->next;
+}
+
+
+void AbstractParseTree::Dispose()
+{
+	tree_t::Dispose();
+	list_t::Dispose();
+	tree_cursor_t::Dispose();
 }
 
 

@@ -50,6 +50,7 @@ public:
 	{	return _id == _empty;
 	}
 
+	static void Dispose();
 private:
 	const char *_id;
 	static const char *_empty;
