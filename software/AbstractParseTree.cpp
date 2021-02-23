@@ -177,6 +177,28 @@ void tree_t::setFileName(const char* fn)
 	}
 }
 
+void print_char(FILE *f, char ch, bool in_string)
+{
+	if (ch == '\0')
+		fprintf(f, "\\0");
+	else if (ch == '\n')
+		fprintf(f, "\\n");
+	else if (ch == '\r')
+		fprintf(f, "\\r");
+	else if (ch == '\t')
+		fprintf(f, "\\t");
+	else if (ch == '\'' && !in_string)
+		fprintf(f, "\\'");
+	else if (ch == '\"' && in_string)
+		fprintf(f, "\\\"");
+	else if (ch == '\\')
+		fprintf(f, "\\\\");
+	else if (ch < ' ' || ch >= 127)
+		fprintf(f, "\\x%02x", (unsigned int)ch);
+	else
+		fprintf(f, "%c", ch);
+}
+
 void tree_t::print(FILE *f, bool compact)
 {
 	static int print_tree_depth = 0;
@@ -188,14 +210,7 @@ void tree_t::print(FILE *f, bool compact)
 	{
 		fprintf(f, "\"");
 		for (const char *s = c.str_value != 0 ? c.str_value->value : ""; *s != '\0'; s++)
-		{
-			if (*s == '\n')
-				fprintf(f, "\\n");
-			else if (*s == '\t')
-				fprintf(f, "\\t");
-			else
-				fprintf(f, "%c", *s);
-		}
+			print_char(f, *s, true);
 		fprintf(f, "\"");
 	}
 	else if (type == tt_int_value)
@@ -203,7 +218,11 @@ void tree_t::print(FILE *f, bool compact)
 	else if (type == tt_double_value)
 		fprintf(f, "%f", c.double_value);
 	else if (type == tt_char_value)
-		fprintf(f, "'%c'", c.char_value);
+	{
+		fprintf(f, "'");
+		print_char(f, c.char_value, false);
+		fprintf(f, "'");
+	}
 	else if (type == tt_opencontext)
 	{   fprintf(f, "{");
 		//print_context(f, tree->c.context, compact);
