@@ -106,7 +106,7 @@ class LL1HeapParseProcess
 {
 	friend class LL1HeapParser;
 public:
-	LL1HeapParseProcess(LL1HeapParser* parser) : _parser(parser), _state(0), _parent_process(0) {}
+	LL1HeapParseProcess(LL1HeapParser* parser) : _state(0), _parser(parser), _parent_process(0) {}
 	virtual ~LL1HeapParseProcess() {}
 	virtual void execute() = 0;
 protected:

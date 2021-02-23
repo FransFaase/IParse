@@ -116,8 +116,6 @@ bool LL1Parser::parse_nt( GrammarNonTerminal* non_term, AbstractParseTree& rtree
         _depth += 2; 
     }
 
-	TextFilePos start_pos = _text;
-
     for (or_rule = non_term->first; or_rule != 0; or_rule = or_rule->next )
         if (parse_rule(or_rule->rule, (ParsedValue*)0, or_rule->tree_name, rtree))
             break;

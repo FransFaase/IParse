@@ -79,6 +79,8 @@ bool BTParser::parse_ws_term( GrammarTerminal* term )
        
 bool BTParser::parse_ident(GrammarIdent* ident, AbstractParseTree &rtree)
 {	
+	SCONTEXT("p_id")
+
 	AbstractParseTree tree;
 	bool try_it = _scanner->acceptTerminal(_text, ident->terminal->name, tree);
 	if (!try_it)
@@ -108,6 +110,8 @@ bool BTParser::parse_ident(GrammarIdent* ident, AbstractParseTree &rtree)
 
 bool BTParser::parse_nt( GrammarNonTerminal* non_term, AbstractParseTree& rtree)
 {
+	SCONTEXT("p_nt")
+
     GrammarOrRule* or_rule;
     Ident surr_nt = _current_nt;
     Ident nt = non_term->name;
@@ -185,6 +189,8 @@ bool BTParser::parse_nt( GrammarNonTerminal* non_term, AbstractParseTree& rtree)
 
 bool BTParser::parse_or(GrammarOrRule* or_rule, ParsedValue* prev_parts, AbstractParseTree &rtree)
 {
+	SCONTEXT("p_or")
+
     DEBUG_ENTER("parse_or: ");
     DEBUG_PO(or_rule); DEBUG_NL;
 
@@ -200,6 +206,8 @@ bool BTParser::parse_or(GrammarOrRule* or_rule, ParsedValue* prev_parts, Abstrac
 
 bool BTParser::parse_rule(GrammarRule* rule, ParsedValue* prev_parts, const Ident tree_name, AbstractParseTree &rtree)
 {   
+	SCONTEXT("p_r")
+
     DEBUG_ENTER("parse_rule: ");
     DEBUG_PR(rule); DEBUG_NL;
 
@@ -246,7 +254,7 @@ bool BTParser::parse_rule(GrammarRule* rule, ParsedValue* prev_parts, const Iden
         DEBUG_EXIT("parse_rule - BREAK "); DEBUG_NL;
         return false;
     }
-    long *last_fail_pos = &rule->last_fail_pos;
+    size_t *last_fail_pos = &rule->last_fail_pos;
 
     if (optional && avoid)
     {    
@@ -439,7 +447,9 @@ bool BTParser::parse_rule(GrammarRule* rule, ParsedValue* prev_parts, const Iden
 bool BTParser::parse_seq(GrammarRule* rule, const char *chain_sym,
                AbstractParseTree seq, ParsedValue* prev_parts, const Ident tree_name,
                AbstractParseTree &rtree)
-{       
+{
+	SCONTEXT("p_seq")
+
     DEBUG_ENTER("parse_seq: ");
     DEBUG_PR(rule); DEBUG_P1(" at |%s|", _text.start()); DEBUG_NL;
 	
@@ -574,6 +584,8 @@ void BTParser::init_solutions()
 
 void BTParser::free_solutions()
 {
+	SCONTEXT("free_solutions")
+
 	unsigned long i;
 
 	for (i = 0; i < _text.length()+1; i++)

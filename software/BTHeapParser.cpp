@@ -113,7 +113,7 @@ class ParseFunction
 {
 	friend class BTHeapParser;
 public:
-	ParseFunction(BTHeapParser* parser) : _parser(parser), _state(0), _parent_function(0) {}
+	ParseFunction(BTHeapParser* parser) : _state(0), _parser(parser), _parent_function(0) {}
 	virtual ~ParseFunction() {}
 	virtual void execute() = 0;
 protected:
@@ -186,7 +186,7 @@ private:
 	bool _avoid;
 	bool _sequential;
     const char *_chain_sym;
-    long *_last_fail_pos;
+    size_t *_last_fail_pos;
     TextFilePos _sp;
     bool _try_it;
 	AbstractParseTree _t;

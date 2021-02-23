@@ -1,6 +1,27 @@
 #ifndef INCLUDED_ABSTRACTPARSETREE_H
 #define INCLUDED_ABSTRACTPARSETREE_H
 
+#ifdef DEBUGALLOC
+class SContext
+{
+public:
+	SContext(const char* name);
+	~SContext();
+	static void print(FILE* f);
+
+private:
+	void _print(FILE* f);
+	SContext* _next;
+	const char* _name;
+	static SContext* _top;
+};
+#define SCONTEXT(S) SContext sContext(S);
+#define PCONTEXT(F) SContext::print(F);
+#else
+#define SCONTEXT(S)
+#define PCONTEXT(F)
+#endif
+
 struct tree_t;
 struct list_t;
 struct tree_cursor_t;
@@ -68,7 +89,7 @@ public:
 	AbstractParseTree& operator=(double value) { createDoubleAtom(value); return *this; }
 	AbstractParseTree& operator=(char value) { createCharAtom(value); return *this; }
 	AbstractParseTree& operator=(long value) { createIntAtom(value); return *this; }
-	~AbstractParseTree() { release(); }
+	~AbstractParseTree() { SCONTEXT("~"); release(); }
 
 	static AbstractParseTree makeList();
 	static AbstractParseTree makeTree( const Ident name );
@@ -179,7 +200,6 @@ private:
 #ifdef _DEBUG
 void AbstractParseTreeUnitTest();
 #endif
-
 
 
 #endif // INCLUDED_ABSTRACTPARSETREE_H

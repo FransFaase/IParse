@@ -598,7 +598,6 @@ bool Unparser::match_or(const AbstractParseTree& tree, GrammarOrRules* or_rules,
 	}
 
 	TreeTypeToGrammarRules* treeTypeToRules = 0;
-	bool is_single = false;
 	if (tree.isEmpty())
 	{
 		if (or_rules->emptyTreeRules != 0)
@@ -839,7 +838,6 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 	}
 
 	TreeTypeToGrammarRules* treeTypeToRules = 0;
-	bool is_single = false;
 	if (tree.isEmpty())
 		treeTypeToRules = or_rules->emptyTreeRules;
 	else if (tree.isTree())
@@ -857,7 +855,6 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 		treeTypeToRules = or_rules->listRules;
 	else
 	{
-		is_single = true;
 		for (TreeTypeToGrammarRules* terminalToRules = or_rules->terminalToRulesMap; terminalToRules != 0; terminalToRules = terminalToRules->next)
 		{
 			if (_terminalUnparser->match(terminalToRules->name, tree))

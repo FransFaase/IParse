@@ -6,7 +6,7 @@ class TextFilePos
 public:
 	TextFilePos() { clear(); }
 	void clear()
-	{	_pos = (unsigned long)-1;
+	{	_pos = (size_t)-1;
 		_line = 1;
 		_column = 1;
 	}
@@ -20,12 +20,12 @@ public:
 	inline bool operator!=(const TextFilePos& lhs) const { return _pos != lhs._pos; }
 	inline bool operator<(const TextFilePos& lhs) const { return _pos < lhs._pos; }
 	inline bool operator>(const TextFilePos& lhs) const { return _pos > lhs._pos; }
-	inline unsigned long position() { return _pos; }
+	inline size_t position() { return _pos; }
 	inline int line() { return _line; }
 	inline int column() { return _column; }
 
 protected:
-	unsigned long _pos;
+	size_t _pos;
 	int _line;
 	int _column;
 };

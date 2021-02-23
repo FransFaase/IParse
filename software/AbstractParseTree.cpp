@@ -10,7 +10,7 @@
 
 struct tree_t
 {   
-	tree_t(const char* n_type = tt_list) : type(n_type), filename(0), line(0), column(0), refcount(1) { c.parts = 0; }
+	tree_t(const char* n_type) : type(n_type), filename(0), line(0), column(0), refcount(1) { c.parts = 0; }
 	tree_t(const Ident ident) : type(tt_ident), filename(0), line(0), column(0), refcount(1) { c.ident = ident.val(); }
 	tree_t(string_t *value) : type(tt_str_value), filename(0), line(0), column(0), refcount(1) { c.str_value = value; if (value != 0) value->refcount++; }
 	tree_t(long value) : type(tt_int_value), filename(0), line(0), column(0), refcount(1) { c.int_value = value; }
@@ -27,17 +27,17 @@ struct tree_t
 	void print(FILE *f, bool compact);
 
 	const char *type;
-    union
-    {   list_t *parts;
+	union
+	{   list_t *parts;
 		const char *ident;
 		string_t *str_value;
-        long   int_value;
-        double double_value;
-        char   char_value;
-    } c;
-    const char *filename;
-    int line, column;
-    unsigned long refcount;
+		long   int_value;
+		double double_value;
+		char   char_value;
+	} c;
+	const char *filename;
+	int line, column;
+	unsigned long refcount;
 
 
 	static const char *tt_ident;
@@ -49,8 +49,10 @@ struct tree_t
 	static const char *tt_opencontext;
 	static const char *tt_closecontext;
 
+#ifdef USE_OWN_NEW_DELETE
 	void* operator new(size_t size); 
 	void operator delete(void *data);
+#endif
 	static void Dispose();
 	static long alloced;
 private:
@@ -62,11 +64,13 @@ struct list_t
 	list_t() : first(0), next(0) {}
 	list_t(Ident n_name, tree_t *n_first) : name(n_name), first(n_first), next(0) {}
 	Ident name;
-    tree_t *first;
+	tree_t *first;
 	list_t *next;
 
+#ifdef USE_OWN_NEW_DELETE
 	void* operator new(size_t size); 
 	void operator delete(void *data);
+#endif
 	static void Dispose();
 private:
 	static list_t *_old;
@@ -87,6 +91,7 @@ const char *tree_t::tt_closecontext = "<closecontext>";
 tree_t *tree_t::_old = 0;
 long tree_t::alloced = 0;
 
+#ifdef USE_OWN_NEW_DELETE
 void* tree_t::operator new(size_t size)
 {   
 	alloced++;
@@ -104,10 +109,11 @@ void* tree_t::operator new(size_t size)
 void tree_t::operator delete(void *data)
 {
 	tree_t *tree = (tree_t*)data;
-    tree->type = (char*)_old;
-    _old = tree;
+	tree->type = (char*)_old;
+	_old = tree;
 	alloced--;
 }
+#endif
 
 void tree_t::Dispose()
 {
@@ -123,24 +129,25 @@ void tree_t::Dispose()
 bool tree_t::can_have_parts()
 {
 	return    type != tt_ident 
-           && type != tt_str_value
-           && type != tt_int_value
-           && type != tt_double_value
-           && type != tt_char_value
-           && type != tt_opencontext
-           && type != tt_closecontext;
+		   && type != tt_str_value
+		   && type != tt_int_value
+		   && type != tt_double_value
+		   && type != tt_char_value
+		   && type != tt_opencontext
+		   && type != tt_closecontext;
 }
 
 void tree_t::release()
 {
+	SCONTEXT("tree_t_release")
 	//printf("%8X -- (%lu) ", this, refcount-1);
 	//SContext::print(stdout);
 	//printf("\n");
 
-    alloced--;
+	alloced--;
 
 	if (--refcount == 0)
-    {
+	{
 		if (type == tt_str_value)
 		{
 			delete c.str_value;
@@ -148,16 +155,16 @@ void tree_t::release()
 		else if (can_have_parts())
 		{   list_t *list = c.parts;
 
-            while (list != 0)
-            {   list_t *next = list->next;
+			while (list != 0)
+			{   list_t *next = list->next;
 				if (list->first != 0)
 					list->first->release();
-                delete list;
-                list = next;
-            }
-        }
+				delete list;
+				list = next;
+			}
+		}
 		delete this;
-    }
+	}
 }
 
 void tree_t::setFileName(const char* fn)
@@ -191,12 +198,12 @@ void tree_t::print(FILE *f, bool compact)
 		}
 		fprintf(f, "\"");
 	}
-    else if (type == tt_int_value)
-	    fprintf(f, "%ld", c.int_value);
+	else if (type == tt_int_value)
+		fprintf(f, "%ld", c.int_value);
 	else if (type == tt_double_value)
-	    fprintf(f, "%f", c.double_value);
+		fprintf(f, "%f", c.double_value);
 	else if (type == tt_char_value)
-	    fprintf(f, "'%c'", c.char_value);
+		fprintf(f, "'%c'", c.char_value);
 	else if (type == tt_opencontext)
 	{   fprintf(f, "{");
 		//print_context(f, tree->c.context, compact);
@@ -204,10 +211,10 @@ void tree_t::print(FILE *f, bool compact)
 	else if (type == tt_closecontext)
 		fprintf(f, "}");
 	else
-	{    
-    	fprintf(f, "%s(", type);
+	{
+		fprintf(f, "%s(", type);
    
-    	print_tree_depth += strlen(type) + 1;
+		print_tree_depth += strlen(type) + 1;
 
 		bool first = true;
 		for (list_t *list = c.parts; list != 0; list = list->next)
@@ -227,12 +234,13 @@ void tree_t::print(FILE *f, bool compact)
 		}
 
 		print_tree_depth -= strlen(type) + 1;
-    	fprintf(f, ")");
+		fprintf(f, ")");
 	}
 }
 
 list_t *list_t::_old = 0;
 
+#ifdef USE_OWN_NEW_DELETE
 void* list_t::operator new(size_t size)
 {   
 	if (_old == 0)
@@ -245,9 +253,10 @@ void* list_t::operator new(size_t size)
 void list_t::operator delete(void *data)
 {
 	list_t *list = (list_t*)data;
-    list->next = _old;
+	list->next = _old;
 	_old = list;
 }
+#endif
 
 void list_t::Dispose()
 {
@@ -261,24 +270,27 @@ void list_t::Dispose()
 
 void tree_t::assign(tree_t *&d, tree_t *s)
 {
+  SCONTEXT("tree_t_assign")
   tree_t *old_d = d;
 
   d = s;
   if (d != 0)
   {
-    d->refcount++;
-    alloced++;
+	d->refcount++;
+	alloced++;
 
 	//printf("%8X +B ", d);
 	//SContext::print(stdout);
 	//printf("\n");
   }
   if (old_d != 0)
-    old_d->release();
+	old_d->release();
 }
 
 tree_t *tree_t::clone()
 {
+	SCONTEXT("tree_t_clone")
+
 	tree_t *result = 0;
 	if (type == tt_ident)
 		result = new tree_t(c.ident);
@@ -299,7 +311,9 @@ tree_t *tree_t::clone()
 		{
 			*ref_list = new list_t(list->name, list->first);
 			if (list->first != 0)
+			{
 				list->first->refcount++;
+			}
 			ref_list = &(*ref_list)->next;
 		}
 	}
@@ -395,7 +409,7 @@ void* tree_cursor_t::operator new(size_t size)
 	//SContext::print(stdout);
 	//printf("\n");
 
-    return new_tree_cursor;
+	return new_tree_cursor;
 }
 void tree_cursor_t::operator delete(void *data)
 {
@@ -510,14 +524,14 @@ bool AbstractParseTreeBase::isIdent() const
 
 bool AbstractParseTreeBase::isIdent( const Ident ident ) const
 {
-    return    _tree != 0
-           && _tree->type == tree_t::tt_ident
-           && _tree->c.ident == ident.val();
+	return    _tree != 0
+		   && _tree->type == tree_t::tt_ident
+		   && _tree->c.ident == ident.val();
 }
 
 bool AbstractParseTreeBase::equalIdent( const Ident ident ) const
 {
-    return _tree->c.ident == ident.val();
+	return _tree->c.ident == ident.val();
 }
 
 const Ident AbstractParseTreeBase::identName() const
@@ -527,14 +541,14 @@ const Ident AbstractParseTreeBase::identName() const
 
 bool AbstractParseTreeBase::isString( ) const
 {
-    return _tree != 0 && _tree->type == tree_t::tt_str_value;
+	return _tree != 0 && _tree->type == tree_t::tt_str_value;
 }
 
 bool AbstractParseTreeBase::isString( const char *str ) const
 {
-    return    _tree != 0
-           && _tree->type == tree_t::tt_str_value
-           && _tree->c.str_value != 0
+	return    _tree != 0
+		   && _tree->type == tree_t::tt_str_value
+		   && _tree->c.str_value != 0
 		   && _tree->c.str_value->value == str;
 }
 
@@ -552,7 +566,7 @@ const char* AbstractParseTreeBase::stringValue() const
 
 bool AbstractParseTreeBase::isInt() const
 {
-    return _tree != 0 && _tree->type == tree_t::tt_int_value;
+	return _tree != 0 && _tree->type == tree_t::tt_int_value;
 }
 
 long AbstractParseTreeBase::intValue() const
@@ -562,7 +576,7 @@ long AbstractParseTreeBase::intValue() const
 
 bool AbstractParseTreeBase::isDouble() const
 {
-    return _tree != 0 && _tree->type == tree_t::tt_double_value;
+	return _tree != 0 && _tree->type == tree_t::tt_double_value;
 }
 
 double AbstractParseTreeBase::doubleValue() const
@@ -572,7 +586,7 @@ double AbstractParseTreeBase::doubleValue() const
 
 bool AbstractParseTreeBase::isChar() const
 {
-    return _tree != 0 && _tree->type == tree_t::tt_char_value;
+	return _tree != 0 && _tree->type == tree_t::tt_char_value;
 }
 
 char AbstractParseTreeBase::charValue() const
@@ -582,12 +596,12 @@ char AbstractParseTreeBase::charValue() const
 
 bool AbstractParseTreeBase::isList() const
 {
-    return _tree != 0 && _tree->type == tree_t::tt_list;
+	return _tree != 0 && _tree->type == tree_t::tt_list;
 }
 
 bool AbstractParseTreeBase::isTree() const
 {
-    return    _tree != 0
+	return    _tree != 0
 		   && _tree->type != tree_t::tt_ident
 		   && _tree->type != tree_t::tt_str_value
 		   && _tree->type != tree_t::tt_int_value
@@ -600,12 +614,12 @@ bool AbstractParseTreeBase::isTree() const
 
 bool AbstractParseTreeBase::isTree( Ident name ) const
 {
-    return _tree && _tree->type == name.val();
+	return _tree && _tree->type == name.val();
 }
 
 bool AbstractParseTreeBase::equalTree( Ident name ) const
 {
-    return _tree->type == name.val();
+	return _tree->type == name.val();
 }
 
 const char* AbstractParseTreeBase::type() const
@@ -641,8 +655,8 @@ void AbstractParseTreeBase::print( FILE *f, bool compact ) const
 	else
 		_tree->print(f, compact);
 
-    if (!compact)
-    	fprintf(f, "\n");
+	if (!compact)
+		fprintf(f, "\n");
 };
 
 
@@ -650,6 +664,8 @@ void AbstractParseTreeBase::print( FILE *f, bool compact ) const
 
 AbstractParseTree::AbstractParseTree(const AbstractParseTree& lhs)
 {
+	SCONTEXT("__AbstractParseTree1")
+
 	_tree = lhs._tree;
 	if (_tree != 0)
 	{
@@ -664,6 +680,7 @@ AbstractParseTree::AbstractParseTree(const AbstractParseTree& lhs)
 
 AbstractParseTree::AbstractParseTree(tree_t *tree)
 {
+	SCONTEXT("__AbstractParseTree2")
 	_tree = tree;
 	if (_tree != 0)
 	{
@@ -678,12 +695,14 @@ AbstractParseTree::AbstractParseTree(tree_t *tree)
 
 AbstractParseTree& AbstractParseTree::operator=(const AbstractParseTree& lhs)
 {
+	SCONTEXT("=");
 	tree_t::assign(_tree, lhs._tree);
 	return *this;
 }
 
 AbstractParseTree::AbstractParseTree(const AbstractParseTree::iterator& lhs)
 {
+	SCONTEXT("__AbstractParseTree3");
 	_tree = 0;
 	tree_t::assign(_tree, lhs._list->first);
 }
@@ -710,6 +729,7 @@ void AbstractParseTree::clear()
 }
 void AbstractParseTree::attach(AbstractParseTree& treeRef)
 {
+	SCONTEXT("attach");
 	tree_t *old_tree = _tree;
 	_tree = treeRef._tree;
 	treeRef._tree = 0;
@@ -719,6 +739,7 @@ void AbstractParseTree::attach(AbstractParseTree& treeRef)
 
 void AbstractParseTree::release()
 {
+	SCONTEXT("release");
 	if (_tree != 0)
 		_tree->release();
 	_tree = 0;
@@ -771,13 +792,9 @@ void AbstractParseTree::createIntAtom( long value )
 void AbstractParseTree::createList( void )
 {
 	release();
-	_tree = new tree_t();
-	if (_tree == 0)
-	{
-		int i = 0;
-	}
+	_tree = new tree_t(tree_t::tt_list);
 }
-    
+
 void AbstractParseTree::createTree( const Ident name )
 {
 	release();
@@ -793,43 +810,49 @@ void AbstractParseTree::setTreeName( const Ident name )
 
 void AbstractParseTree::insertChild( const AbstractParseTree& child )
 {
+	SCONTEXT("insertChild");
+
 	assert(_cursor == 0);
 
-    list_t *r_list;
+	list_t *r_list;
 
-    r_list = new list_t();
+	r_list = new list_t();
 	tree_t::assign(r_list->first, child._tree);
-    r_list->next = _tree->c.parts;
-    _tree->c.parts = r_list;
+	r_list->next = _tree->c.parts;
+	_tree->c.parts = r_list;
 } 
 
 void AbstractParseTree::appendChild( const AbstractParseTree& child )
 {
+	SCONTEXT("appendChild");
 	assert(_cursor == 0);
 
-    list_t **r_list = &_tree->c.parts;
+	list_t **r_list = &_tree->c.parts;
 
-    while (*r_list != 0)
-        r_list = &(*r_list)->next;
+	while (*r_list != 0)
+		r_list = &(*r_list)->next;
 
-    *r_list = new list_t();
-    tree_t::assign((*r_list)->first, child._tree);
+	*r_list = new list_t();
+	tree_t::assign((*r_list)->first, child._tree);
 }
 
 void AbstractParseTree::dropLastChild()
 {
+	SCONTEXT("dropChild");
 	assert(_cursor == 0);
 
-    list_t **r_list = &_tree->c.parts;
+	list_t **r_list = &_tree->c.parts;
 
-    if (*r_list == 0)
-        return;
+	if (*r_list == 0)
+		return;
 
-    while ((*r_list)->next != 0)
-        r_list = &(*r_list)->next;
+	while ((*r_list)->next != 0)
+		r_list = &(*r_list)->next;
 
-    delete (*r_list);
-    *r_list = 0;
+	if ((*r_list)->first != 0)
+		(*r_list)->first->release();
+	delete (*r_list);
+	*r_list = 0;
 } 
 
 void AbstractParseTree::createOpenContext()
@@ -841,15 +864,15 @@ void AbstractParseTree::createOpenContext()
 void AbstractParseTree::createCloseContext()
 {
 	release();
-    _tree = new tree_t(tree_t::tt_closecontext);
+	_tree = new tree_t(tree_t::tt_closecontext);
 }
 
 
 AbstractParseTree AbstractParseTree::part( int i ) const
 {
-    list_t *parts = _tree->c.parts;
+	list_t *parts = _tree->c.parts;
 
-    for (; parts && i > 1; parts = parts->next, i--);
+	for (; parts && i > 1; parts = parts->next, i--);
 
 	AbstractParseTree result;
 	if (parts != 0)
@@ -1052,13 +1075,13 @@ void AbstractParseTreeCursor::appendChild(const AbstractParseTreeCursor& child)
 	if (_cursor->parent != 0)
 		_cursor->parent->make_private_copy();
 
-    list_t **r_list = &_tree->c.parts;
+	list_t **r_list = &_tree->c.parts;
 
-    while (*r_list != 0)
-        r_list = &(*r_list)->next;
+	while (*r_list != 0)
+		r_list = &(*r_list)->next;
 
-    *r_list = new list_t();
-    tree_t::assign((*r_list)->first, child._tree);
+	*r_list = new list_t();
+	tree_t::assign((*r_list)->first, child._tree);
 }
 
 
@@ -1330,3 +1353,32 @@ void AbstractParseTreeUnitTest()
 		}
 	}
 }
+
+#ifdef DEBUGALLOC
+SContext::SContext(const char* name)
+{
+	_next = _top;
+	_top = this;
+	_name = name;
+}
+SContext::~SContext()
+{
+	_top = _next;
+}
+
+void SContext::print(FILE* f)
+{
+	if (_top)
+		_top->_print(f);
+}
+
+void SContext::_print(FILE* f)
+{
+	if (_next)
+		_next->_print(f);
+
+	fprintf(f, "%s:", _name);
+}
+
+SContext* SContext::_top = 0;
+#endif

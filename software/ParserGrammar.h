@@ -54,7 +54,7 @@ public:
 class GrammarNonTerminal : public GrammarOrRules
 {
 public:
-	GrammarNonTerminal(Ident n_name) : name(n_name), next(0), recursive(0) {}
+	GrammarNonTerminal(Ident n_name) : next(0), name(n_name), recursive(0) {}
 	~GrammarNonTerminal();
 	GrammarNonTerminal* next;
     Ident name;
@@ -144,7 +144,7 @@ public:
 	// position grammar text
 	long line;
 	long column;
-    long last_fail_pos; // Used by back-tracking parsers
+    size_t last_fail_pos; // Used by back-tracking parsers
 };
 
 class TreeTypeToGrammarRule
@@ -200,7 +200,7 @@ class Grammar
 {
 public:
 	Grammar() : _all_nt(0), _all_t(0), _all_l(0), _for_unparse(false) {}
-	~Grammar();
+	virtual ~Grammar();
 	void loadGrammar(const AbstractParseTree& root);
 	void loadGrammarForUnparse(const AbstractParseTree& root, AbstractUnparseErrorCollector *unparseErrorCollector);
 	GrammarNonTerminal* findNonTerminal(Ident name);
@@ -235,7 +235,7 @@ private:
 class GrammarLoader
 {
 public:
-	GrammarLoader(Grammar *grammar) : _grammar(grammar), _c(0), _nt(0) {}
+	GrammarLoader(Grammar *grammar) : _nt(0), _c(0), _grammar(grammar) {}
 
 protected:
 	void nt_def(const char* name);

@@ -77,7 +77,6 @@ void MarkDownCScanner::skipSpace(TextFileBuffer& text)
 			}
 			else if (text[0] == '/' && text[1] == '*')
 			{   int nesting_depth = 1;
-				TextFilePos sp = text;
 	 
 	 			text.next();
 	 			text.next();
@@ -183,7 +182,7 @@ bool MarkDownCScanner::acceptTerminal(TextFileBuffer& text, Ident name, Abstract
 bool MarkDownCScanner::acceptWhiteSpace(TextFileBuffer& text, Ident name)
 {
 	static Ident id_notamp = "notamp";
-	if (name == "notamp")
+	if (name == id_notamp)
 	{
 		if (!text.eof() && *text == '&')
 			return false;
@@ -495,8 +494,8 @@ bool MarkDownCScanner::accept_macro_def(TextFileBuffer& text, AbstractParseTree&
 		else if (*text == '\\' && (text[1] == '\r' || text[1] == '\n'))
 		{
 			text.next();
-			if (   *text == '\r' && text[1] == '\n'
-			    || *text == '\n' && text[1] == '\r')
+			if (   (*text == '\r' && text[1] == '\n')
+			    || (*text == '\n' && text[1] == '\r'))
 			{
 				text.next();
 				text.next();

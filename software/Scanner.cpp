@@ -56,7 +56,6 @@ void BasicScanner::skipSpace(TextFileBuffer& text)
 		}
 		else if (text[0] == '/' && text[1] == '*')
 		{   int nesting_depth = 1;
-			TextFilePos sp = text;
  
  			text.next();
  			text.next();
@@ -148,7 +147,7 @@ bool BasicScanner::acceptTerminal(TextFileBuffer& text, Ident name, AbstractPars
 bool BasicScanner::acceptWhiteSpace(TextFileBuffer& text, Ident name)
 {
 	static Ident id_notamp = "notamp";
-	if (name == "notamp")
+	if (name == id_notamp)
 	{
 		if (!text.eof() && *text == '&')
 			return false;
@@ -464,7 +463,6 @@ bool WhiteSpaceScanner::accept_whitespace(TextFileBuffer& text, AbstractParseTre
 		}
 		else if (text[0] == '/' && text[1] == '*')
 		{   int nesting_depth = 1;
-			TextFilePos sp = text;
  
  			filler << *text;
  			text.next();

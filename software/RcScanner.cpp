@@ -25,64 +25,57 @@ void ResourceScanner::initScanning(Grammar* grammar)
 
 void ResourceScanner::skipSpace(TextFileBuffer& text)
 {
-	bool cpp_comments = true;
 	bool nested_comments = true;
 
 	/* Fixed part. Do not modify!! */
-    if (text == _last_space_pos)
-    {   text = _last_space_end_pos;
-        return;
-    }
-    _last_space_pos = text;
+	if (text == _last_space_pos)
+	{   text = _last_space_end_pos;
+		return;
+	}
+	_last_space_pos = text;
 
 	/* Flexible part. 
 	   The code below increments scans the white space 
 	   characters.
 	*/
-    for(;;)
-    {   if (*text == ' ' || *text == '\t' || *text == '\r')
-        {
-            text.next();
-        }
-        //else if (cpp_comments && text[0] == '/' && text[1] == '/')
-        //{
-        //    while (!text.eof() && text[0] != '\n')
-        //        text.next();
-        //}
-        else if (text[0] == '/' && text[1] == '*')
-        {   int nesting_depth = 1;
-            TextFilePos sp = text;
+	for(;;)
+	{   if (*text == ' ' || *text == '\t' || *text == '\r')
+		{
+			text.next();
+		}
+		else if (text[0] == '/' && text[1] == '*')
+		{   int nesting_depth = 1;
  
  			text.next();
  			text.next();
-            while (!text.eof() && !(text[0] == '*' && text[1] == '/') && nesting_depth > 0)
-            {
-            	if (nested_comments)
-            	{
-            		if (text[0] == '/' && text[1] == '*')
-            		{	nesting_depth++;
-            			text.next();
-            		}
-            		else if (text[0] == '*' && text[1] == '/')
-            		{	nesting_depth--;
-            			text.next();
-            		}
-            	}
-                text.next();
-            }
-            if (text.eof())
-            {   //error("Warning: %d.%d comment not terminated\n");
-            }
-            text.next();
-            text.next();
-        }
-        else
-            break;
-    }
+			while (!text.eof() && !(text[0] == '*' && text[1] == '/') && nesting_depth > 0)
+			{
+				if (nested_comments)
+				{
+					if (text[0] == '/' && text[1] == '*')
+					{	nesting_depth++;
+						text.next();
+					}
+					else if (text[0] == '*' && text[1] == '/')
+					{	nesting_depth--;
+						text.next();
+					}
+				}
+				text.next();
+			}
+			if (text.eof())
+			{   //error("Warning: %d.%d comment not terminated\n");
+			}
+			text.next();
+			text.next();
+		}
+		else
+			break;
+	}
 
 	/* Fixed part. Do not modify!! */
-    _last_space_end_pos = text;
-    /* _print_state(); */
+	_last_space_end_pos = text;
+	/* _print_state(); */
 }
 
 
@@ -106,9 +99,9 @@ bool ResourceScanner::acceptLiteral(TextFileBuffer& text, const char* sym)
 		return false;
 	}
 	
-    int i;
-    const char *s;
-    for (i = 0, s = sym; *s != '\0' && text[i] == *s; i++, s++);
+	int i;
+	const char *s;
+	for (i = 0, s = sym; *s != '\0' && text[i] == *s; i++, s++);
 
 	if (*s != '\0')
 		return false;
@@ -117,9 +110,9 @@ bool ResourceScanner::acceptLiteral(TextFileBuffer& text, const char* sym)
 		text.next();
 	else
 		text.advance(i);
-    skipSpace(text);
+	skipSpace(text);
 
-    return true;
+	return true;
 }
 
 bool ResourceScanner::acceptTerminal(TextFileBuffer& text, Ident name, AbstractParseTree& result)
@@ -186,13 +179,12 @@ bool ResourceScanner::accept_comment(TextFileBuffer& text, AbstractParseTree& re
 		return false;
 	
 	text.advance(2);
-    TextFilePos sp = text;
 
 	String comment;
 	String::filler filler(comment);
-    
-    while (!text.eof() && *text != '\0' && *text != '\n')
-    {
+
+	while (!text.eof() && *text != '\0' && *text != '\n')
+	{
 		filler << *text;
 		text.next();
 	}
@@ -202,7 +194,7 @@ bool ResourceScanner::accept_comment(TextFileBuffer& text, AbstractParseTree& re
 
 	result = comment;
 
-    return true;
+	return true;
 }
 
 bool ResourceScanner::accept_ident(TextFileBuffer& text, Ident& ident, bool& is_keyword, const char* keyword)
@@ -217,19 +209,19 @@ bool ResourceScanner::accept_ident(TextFileBuffer& text, Ident& ident, bool& is_
 	}
 
 	/* Does it look an identifier? */
-    if (text.eof() || !IDENT_START_CHAR(*text))
-        return false;
+	if (text.eof() || !IDENT_START_CHAR(*text))
+		return false;
 
 	_last_ident_pos = text;
 
 	/* Determine the lengte of the identifier */
-    int i = 1;
-    while (IDENT_FOLLOW_CHAR(text[i])) 
-        i++;
+	int i = 1;
+	while (IDENT_FOLLOW_CHAR(text[i])) 
+		i++;
 
 	{	
 		assert(i < 200);
-    	char buf[201];
+		char buf[201];
 		int j;
 		for (j = 0; j < i && j < 200; j++)
 			buf[j] = text[j];
@@ -268,23 +260,23 @@ bool ResourceScanner::accept_ident(TextFileBuffer& text, AbstractParseTree& resu
 
 bool ResourceScanner::accept_string(TextFileBuffer& text, AbstractParseTree& result)
 {
-    if (text.eof() || text[0] != '"')
-        return false;
+	if (text.eof() || text[0] != '"')
+		return false;
 
-    text.next();
+	text.next();
 
 	String string;
 	String::filler filler(string);
-    
-    for (;;)
-    {
-        if (text.eof() || *text == '\0' || *text == '\n')
-        {   
-        	//error("incorrectly terminated string");
-            break;
-        }
-        else if (*text == '"')
-        {   
+	
+	for (;;)
+	{
+		if (text.eof() || *text == '\0' || *text == '\n')
+		{   
+			//error("incorrectly terminated string");
+			break;
+		}
+		else if (*text == '"')
+		{   
 			text.next();
 			if (!text.eof() && *text == '"')
 			{
@@ -293,95 +285,95 @@ bool ResourceScanner::accept_string(TextFileBuffer& text, AbstractParseTree& res
 			}
 			else
 				break;
-        }
-        else
-        {   
+		}
+		else
+		{   
 			filler << *text;
-            text.next();
-        }
-    }
+			text.next();
+		}
+	}
 	filler << '\0';
 
 	skipSpace(text);
 
 	result = string;
-    return true;
+	return true;
 }
 
 bool ResourceScanner::accept_char(TextFileBuffer& text, AbstractParseTree& result)
 {
-    if (text.eof() || *text != '\'')
-    	return false;
+	if (text.eof() || *text != '\'')
+		return false;
 
 	char v;
 
-    text.next();
-    if (*text == '\\')
-    {
-        text.next();
-        if ('0' <= *text && *text <= '7')
-        {   char d1 = *text;
+	text.next();
+	if (*text == '\\')
+	{
+		text.next();
+		if ('0' <= *text && *text <= '7')
+		{   char d1 = *text;
 
-            v = *text - '0';
-            text.next();
-            if ('0' <= *text && *text <= '7')
-            {   v = v*8 + *text - '0';
-                text.next();
-                if ((d1 == '0' || d1 == '1') && '0' <= *text && *text <= '7')
-                {   v = v*8 + *text - '0';
-                    text.next();
-                }
-            }
-        }
-        else
+			v = *text - '0';
+			text.next();
+			if ('0' <= *text && *text <= '7')
+			{   v = v*8 + *text - '0';
+				text.next();
+				if ((d1 == '0' || d1 == '1') && '0' <= *text && *text <= '7')
+				{   v = v*8 + *text - '0';
+					text.next();
+				}
+			}
+		}
+		else
 		{
 			if (*text == 'n')
-	            v = '\n';
+				v = '\n';
 			else if (*text == 'r')
-	            v = '\r';
+				v = '\r';
 			else if (*text == 't')
 				v = '\t';
 			else
 				v = *text;
 			text.next();
 		}
-    }
-    else
+	}
+	else
 	{
-        v = *text;
+		v = *text;
 		text.next();
 	}
-    if (*text != '\'')
-    {   // error("ill terminated character");
-    }
-    else
-    {   text.next();
-    }
+	if (*text != '\'')
+	{   // error("ill terminated character");
+	}
+	else
+	{   text.next();
+	}
 
 	skipSpace(text);
 
 	result = v;
-    return true;
+	return true;
 }
 
 bool ResourceScanner::accept_int(TextFileBuffer& text, AbstractParseTree& result)
 {
-    if (text.eof() || (   !isdigit(*text)
-                 && (   (*text != '+' && *text != '-') 
-                     || !isdigit(text[1]))))
-        return false;
+	if (text.eof() || (   !isdigit(*text)
+				 && (   (*text != '+' && *text != '-') 
+					 || !isdigit(text[1]))))
+		return false;
 
-    int i = 0;
+	int i = 0;
 	long v = 0;
 	bool minus = false;
-    if (text[i] == '-' || text[i] == '+')
+	if (text[i] == '-' || text[i] == '+')
 	{
 		minus = text[i] == '-';
-        i++;
+		i++;
 	}
-    if (text[i] == '0' && text[i+1] == 'x')
-    {   i += 2;
-        for (;; i++)
+	if (text[i] == '0' && text[i+1] == 'x')
+	{   i += 2;
+		for (;; i++)
 			if (isdigit(text[i]))
 				v = 16 * v + text[i] - '0';
 			else if ('a' <= text[i] && text[i] <= 'f') 
@@ -390,50 +382,50 @@ bool ResourceScanner::accept_int(TextFileBuffer& text, AbstractParseTree& result
 				v = 16 * v + 10 + text[i] - 'A';
 			else
 				break;
-    }
-    else
-    {   
+	}
+	else
+	{   
 		for (; isdigit(text[i]); i++)
 			v = v * 10 + text[i] - '0';
-        if (text[i] == '.')
-            return false;
-    }
-    if (text[i] == 'L')
-        i++;
+		if (text[i] == '.')
+			return false;
+	}
+	if (text[i] == 'L')
+		i++;
 
-    text.advance(i);
+	text.advance(i);
 	skipSpace(text);
 
 	result = minus ? -v : v;
-    return true;
+	return true;
 }
 
 bool ResourceScanner::accept_double(TextFileBuffer& text, AbstractParseTree& result)
 {
 
-    if (text.eof() || (   !isdigit(*text) && *text != '.'
-                 && (   (*text != '+' && *text != '-') 
-                     || (!isdigit(text[1]) && text[1] != '.'))))
-        return false;
+	if (text.eof() || (   !isdigit(*text) && *text != '.'
+				 && (   (*text != '+' && *text != '-') 
+					 || (!isdigit(text[1]) && text[1] != '.'))))
+		return false;
 
-    int i = 0;
-    if (text[i] == '-' || text[i] == '+')
-        i++;
-    while (isdigit(text[i]))
-        i++;
-    if (text[i] != '.')
-        return false;
-    i++;
-    while (isdigit(text[i]))
-        i++;
+	int i = 0;
+	if (text[i] == '-' || text[i] == '+')
+		i++;
+	while (isdigit(text[i]))
+		i++;
+	if (text[i] != '.')
+		return false;
+	i++;
+	while (isdigit(text[i]))
+		i++;
 	double v;
-    sscanf(text, "%lf", &v);
+	sscanf(text, "%lf", &v);
 
-    text.advance(i);
+	text.advance(i);
 	skipSpace(text);
 
 	result = v;
-    return true;
+	return true;
 }
 
 

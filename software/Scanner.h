@@ -8,6 +8,7 @@ class AbstractScanner
 {
 public:
 	AbstractScanner() : _grammar(0) {}
+	virtual ~AbstractScanner() {}
 
 	virtual void initScanning(Grammar* grammar) { _grammar = grammar; }
 	virtual void skipSpace(TextFileBuffer& text) = 0;

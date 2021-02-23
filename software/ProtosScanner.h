@@ -27,7 +27,6 @@ private:
 	TextFilePos _last_space_end_pos;
 	TextFilePos _last_ident_pos;
 	TextFilePos _last_ident_end_pos;
-	bool _last_ident_is_keyword;
 	Ident _last_ident;
 
 	static Ident id_ident;

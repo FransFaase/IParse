@@ -35,11 +35,11 @@ void ProtosScanner::skipSpace(TextFileBuffer& text)
 	//bool nested_comments = true;
 
 	/* Fixed part. Do not modify!! */
-    if (text == _last_space_pos)
-    {   text = _last_space_end_pos;
-        return;
-    }
-    _last_space_pos = text;
+	if (text == _last_space_pos)
+	{   text = _last_space_end_pos;
+		return;
+	}
+	_last_space_pos = text;
 
 	/* Flexible part. 
 	   The code below increments scans the white space 
@@ -58,8 +58,8 @@ void ProtosScanner::skipSpace(TextFileBuffer& text)
 	}
 
 	/* Fixed part. Do not modify!! */
-    _last_space_end_pos = text;
-    /* _print_state(); */
+	_last_space_end_pos = text;
+	/* _print_state(); */
 }
 
 
@@ -73,17 +73,17 @@ bool ProtosScanner::acceptLiteral(TextFileBuffer& text, const char* sym)
 	if (*sym == '\0')
 		return true;
 
-    int i;
-    const char *s;
-    for (i = 0, s = sym; *s != '\0' && text[i] == *s; i++, s++);
+	int i;
+	const char *s;
+	for (i = 0, s = sym; *s != '\0' && text[i] == *s; i++, s++);
 
 	if (*s != '\0' || (IS_CAPITAL(*sym) && IS_CAPITAL(text[i])))
 		return false;
 
-    text.advance(i);
-    skipSpace(text);
+	text.advance(i);
+	skipSpace(text);
 
-    return true;
+	return true;
 }
 
 bool ProtosScanner::acceptTerminal(TextFileBuffer& text, Ident name, AbstractParseTree& result)
@@ -117,8 +117,8 @@ bool ProtosScanner::accept_ident(TextFileBuffer& text, Ident& ident)
 	}
 
 	/* Does it look an identifier? */
-    if (text.eof() || (!IDENT_START_CHAR(*text) && *text != '\\'))
-        return false;
+	if (text.eof() || (!IDENT_START_CHAR(*text) && *text != '\\'))
+		return false;
 
 	_last_ident_pos = text;
 
@@ -176,114 +176,114 @@ bool ProtosScanner::accept_string(TextFileBuffer& text, AbstractParseTree& resul
    accept_string and accept_cstring.
 */
 {
-    if (text.eof() || text[0] != '"')
-        return false;
+	if (text.eof() || text[0] != '"')
+		return false;
 
-    String string;
+	String string;
 	String::filler filler(string);
-    
-    text.next();
-    for (;;)
-    {
-        if (text.eof() || *text == '\0' || *text == '\n')
-        {   
-            break;
-        }
-        else if (*text == '\\')
-        {
-            text.next();
-            if (isdigit(text[0]) && isdigit(text[1]) && isdigit(text[2]))
-            {   filler << (100 * (text[0] - '0') + 10 * (text[1] - '0') + (text[2] - '0'));
+
+	text.next();
+	for (;;)
+	{
+		if (text.eof() || *text == '\0' || *text == '\n')
+		{
+			break;
+		}
+		else if (*text == '\\')
+		{
+			text.next();
+			if (isdigit(text[0]) && isdigit(text[1]) && isdigit(text[2]))
+			{   filler << (100 * (text[0] - '0') + 10 * (text[1] - '0') + (text[2] - '0'));
 				text.advance(3);
-            }
-            else if (!text.eof()) 
-            {   if (*text == 'n')
-                    filler << '\n';
-                else if (*text == 't')
-                    filler << '\t';
-                else 
-                    filler << *text;
-                text.next();
-            }
-        }
-        else if (*text == '"')
-        {   text.next();
-            if (c_string)
-            {   skipSpace(text);
-                if (text.eof() || *text != '"')
-                     break;
-                text.next();
-            }
-            else
-                break;
-        }
-        else
-        {   filler << *text;
-            text.next();
-        }
-    }
+			}
+			else if (!text.eof())
+			{   if (*text == 'n')
+					filler << '\n';
+				else if (*text == 't')
+					filler << '\t';
+				else
+					filler << *text;
+				text.next();
+			}
+		}
+		else if (*text == '"')
+		{   text.next();
+			if (c_string)
+			{   skipSpace(text);
+				if (text.eof() || *text != '"')
+					 break;
+				text.next();
+			}
+			else
+				break;
+		}
+		else
+		{   filler << *text;
+			text.next();
+		}
+	}
 	filler << '\0';
 
 	skipSpace(text);
 
 	result = string;
-    return true;
+	return true;
 }
 
 
 bool ProtosScanner::accept_int(TextFileBuffer& text, AbstractParseTree& result)
 {
-    if (text.eof() || (   !isdigit(*text)
-                 && (   (*text != '+' && *text != '-') 
-                     || !isdigit(text[1]))))
-        return false;
+	if (text.eof() || (   !isdigit(*text)
+				 && (   (*text != '+' && *text != '-')
+					 || !isdigit(text[1]))))
+		return false;
 
-    int i = 0;
-    if (text[i] == '-' || text[i] == '+')
-        i++;
-    if (text[i] == '0' && text[i+1] == 'x')
-    {   i += 2;
-        while (   isdigit(text[i]) 
-               || ('a' <= text[i] && text[i] <= 'f') 
-               || ('A' <= text[i] && text[i] <= 'F'))
-            i++;
-    }
-    else
-    {   while (isdigit(text[i]))
-            i++;
-        if (text[i] == '.')
-            return false;
-        if (text[i] == 'L')
-            i++;
-    }
-	long v;    
-    sscanf(text, "%ld", &v);
+	int i = 0;
+	if (text[i] == '-' || text[i] == '+')
+		i++;
+	if (text[i] == '0' && text[i+1] == 'x')
+	{   i += 2;
+		while (   isdigit(text[i])
+			   || ('a' <= text[i] && text[i] <= 'f')
+			   || ('A' <= text[i] && text[i] <= 'F'))
+			i++;
+	}
+	else
+	{   while (isdigit(text[i]))
+			i++;
+		if (text[i] == '.')
+			return false;
+		if (text[i] == 'L')
+			i++;
+	}
+	long v;
+	sscanf(text, "%ld", &v);
 
-    text.advance(i);
+	text.advance(i);
 	skipSpace(text);
 
 	result = v;
-    return true;
+	return true;
 }
 
 bool ProtosScanner::accept_double(TextFileBuffer& text, AbstractParseTree& result)
 {
 
-    if (text.eof() || (   !isdigit(*text) && *text != '.'
-                 && (   (*text != '+' && *text != '-') 
-                     || (!isdigit(text[1]) && text[1] != '.'))))
-        return false;
+	if (text.eof() || (   !isdigit(*text) && *text != '.'
+				 && (   (*text != '+' && *text != '-')
+					 || (!isdigit(text[1]) && text[1] != '.'))))
+		return false;
 
-    int i = 0;
-    if (text[i] == '-' || text[i] == '+')
-        i++;
-    while (isdigit(text[i]))
-        i++;
-    if (text[i] != '.')
-        return false;
-    i++;
-    while (isdigit(text[i]))
-        i++;
+	int i = 0;
+	if (text[i] == '-' || text[i] == '+')
+		i++;
+	while (isdigit(text[i]))
+		i++;
+	if (text[i] != '.')
+		return false;
+	i++;
+	while (isdigit(text[i]))
+		i++;
 	if (text[i] == 'e')
 	{
 		i++;
@@ -293,13 +293,13 @@ bool ProtosScanner::accept_double(TextFileBuffer& text, AbstractParseTree& resul
 			i++;
 	}
 	double v;
-    sscanf(text, "%lf", &v);
+	sscanf(text, "%lf", &v);
 
-    text.advance(i);
+	text.advance(i);
 	skipSpace(text);
 
 	result = v;
-    return true;
+	return true;
 }
 
 bool ProtosScanner::accept_newline(TextFileBuffer& text, AbstractParseTree& result)

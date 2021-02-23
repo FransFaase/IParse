@@ -39,7 +39,7 @@ bool detailed_debug = false;
 class MyAlloc
 {
 public:
-	MyAlloc(const char* name) : _name(name), _allocs(0), _allocated(0), _freed(0), _count(0), _reused(0) {}
+	MyAlloc(const char* name) : _allocs(0), _name(name), _allocated(0), _freed(0), _count(0), _reused(0) {}
 	void* mynew(size_t size)
 	{
 		_allocated++;
@@ -87,7 +87,8 @@ class ParseProcess
 	// Reference counting is managed by class Alternative.
 	friend class Alternative;
 public:
-	ParseProcess(int state, ParseProcess* parent_process) : _ref_count(1), _state(state), _parent_process(parent_process) {}
+	ParseProcess(int state, ParseProcess* parent_process) : _state(state), _parent_process(parent_process), _ref_count(1) {}
+	virtual ~ParseProcess() {}
 	virtual ParseProcess* clone(int state) = 0;
 	virtual void execute(ParParser* parser, Alternative* alt) = 0;
 	virtual void print(FILE *fout) = 0;
@@ -125,8 +126,8 @@ class Alternative
 {
 	friend class ParParser;
 public:
-	Alternative(Alternative *parent) : _parent(parent), _children(0), _next_sibl(0), _ref_prev_sibl(0), _success(0), _next(0), _ref_prev(0), _process(0), _parse_position(0),
-			cr_text(""), cr_grammar_rule(0), _check_state(' ')
+	Alternative(Alternative *parent) : cr_text(""), cr_grammar_rule(0), _parent(parent), _children(0), _next_sibl(0), _ref_prev_sibl(0), _parse_position(0), _next(0), _ref_prev(0),
+			_success(0), _process(0), _check_state(' ')
 	{
 		alt_id = next_alt_id++;
 		_tail_children = &_children;
@@ -643,10 +644,7 @@ class ParseRootProcess : public ParseProcess
 public:
 	ParseRootProcess(Ident root_id, int state = 0, ParseProcess* parent_process = 0) 
 		: ParseProcess(state, parent_process), _root_id(root_id) {}
-	~ParseRootProcess()
-	{
-		int x = 1;
-	}
+	virtual ~ParseRootProcess() {}
 	virtual ParseProcess* clone(int state)
 	{
 		return new ParseRootProcess(_root_id, state);
@@ -748,7 +746,6 @@ private:
 	bool _nongreedy;
 	bool _sequential;
     const char *_chain_sym;
-    long *_last_fail_pos;
     bool _try_it;
 	TextFilePos _start_pos;
 	AbstractParseTree _t;
