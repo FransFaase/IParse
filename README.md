@@ -21,8 +21,8 @@ are still under construction, such as the LL1HeapColourParser.
 The ParParser, an experimental parallel parser, has poor
 performance.
 
-Also RcTransl, an tool for language translation between
-Windows resource files, is still under development. 
+Also RcTransl, a tool for language translation between
+Windows resource files, is still under development.
 
 http://www.iwriteiam.nl/MM.html
 
