@@ -86,7 +86,7 @@ class LL1HeapColourParseProcess
 {
 	friend class LL1HeapColourParser;
 public:
-	LL1HeapColourParseProcess(LL1HeapColourParser* parser) : _parser(parser), _state(0), _parent_process(0) {}
+	LL1HeapColourParseProcess(LL1HeapColourParser* parser) : _state(0), _parser(parser), _parent_process(0) {}
 	virtual ~LL1HeapColourParseProcess() {}
 	virtual void execute() = 0;
 protected:
