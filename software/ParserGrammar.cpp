@@ -294,22 +294,22 @@ GrammarRule* Grammar::make_rule(AbstractParseTree::iterator rule, GrammarOrRule*
     else if (elem.isTree(id_identdef))
     {
         result->kind = RK_IDENT;
-        result->text.ident = new GrammarIdent(IK_IDENTDEF, elem.part(2).string(), findTerminal(id_ident));
+        result->text.ident = new GrammarIdent(IK_IDENTDEF, elem.part(1).identName(), findTerminal(id_ident));
     }
     else if (elem.isTree(id_identdefadd))
     {
         result->kind = RK_IDENT;
-        result->text.ident = new GrammarIdent(IK_IDENTDEFADD, elem.part(2).string(), findTerminal(id_ident));
+        result->text.ident = new GrammarIdent(IK_IDENTDEFADD, elem.part(1).identName(), findTerminal(id_ident));
     }
     else if (elem.isTree(id_identuse))
     {
         result->kind = RK_IDENT;
-        result->text.ident = new GrammarIdent(IK_IDENTUSE, elem.part(2).string(), findTerminal(id_ident));
+        result->text.ident = new GrammarIdent(IK_IDENTUSE, elem.part(1).identName(), findTerminal(id_ident));
     }
     else if (elem.isTree(id_identfield))
     {
         result->kind = RK_IDENT;
-        result->text.ident = new GrammarIdent(IK_IDENTFIELD, elem.part(2).string(), findTerminal(id_ident));
+        result->text.ident = new GrammarIdent(IK_IDENTFIELD, elem.part(1).identName(), findTerminal(id_ident));
     }
     else if (elem.isTree(id_opencontext))
     {

@@ -72,10 +72,10 @@ public:
 class GrammarIdent
 {
 public:
-	GrammarIdent(int n_kind, const String& n_ident_class, GrammarTerminal* n_terminal)
+	GrammarIdent(int n_kind, const Ident& n_ident_class, GrammarTerminal* n_terminal)
 	 : kind(n_kind), ident_class(n_ident_class), terminal(n_terminal) {}
 	int kind;
-	String ident_class;
+	Ident ident_class;
 	GrammarTerminal* terminal;
 };
 
