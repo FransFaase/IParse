@@ -3,7 +3,7 @@ primary_expr
         | int
         | double
         | char
-        | string
+        | cstring
         | "(" expr ")"
         .
 
@@ -26,14 +26,14 @@ unary_expr
         | "-" cast_expr  [min]
         | "~" cast_expr  [invert]
         | "!" cast_expr  [not]
-        | "sizeof" ( unary_expr [typeof]
-                   | "(" ident ")"  
+        | "sizeof" ( unary_expr [sizeofexpr]
+                   | "(" type_name ")"
                    )  [sizeof]
         | postfix_expr
         .
 
 cast_expr
-        : "(" abstract_declaration ")" cast_expr  [cast]
+        : "(" type_name ")" cast_expr  [cast]
         | unary_expr
         .
 
@@ -191,6 +191,10 @@ parameter_declaration
 abstract_declaration
         : type_specifier parameter_declaration  [type]
         | abstract_declarator
+        .
+
+type_name
+        : type_specifier SEQ OPT abstract_declarator OPT
         .
 
 abstract_declarator
