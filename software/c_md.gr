@@ -14,6 +14,7 @@ postfix_expr
         | postfix_expr "->" ident  [fieldderef]
         | postfix_expr "++"  [post_inc]
         | postfix_expr "--"  [post_dec]
+        | macro_ident "(" (assignment_expr | type_specifier) LIST OPT ")" [macrocall]
         | primary_expr
         .
 
@@ -96,14 +97,18 @@ constant_expr
 
 declaration
         : \nl ( storage_class_specifier | type_specifier) SEQ OPT NONGREEDY
-          ( ( declarator (\s "=" \s initializer) OPT) LIST OPT ";"  [decl]
-          | func_declarator "(" parameter_declaration_list OPT ")"
+          ( func_declarator "(" parameter_declaration_list OPT ")"
             ( ";" | \nl "{" \inc decl_or_stat \nl \dec "}" )  [new_style]
           | func_declarator "(" ident_list OPT ")" declaration SEQ OPT
             \nl "{" \inc decl_or_stat \nl \dec "}"  [old_style]
-          )
+          | ( declarator (\s "=" \s initializer) OPT) LIST OPT ";"  [var]
+          ) [decl]
         .
-
+        
+for_var_declaration
+		: type_specifier SEQ ( declarator (\s "=" \s initializer) OPT) LIST [forvardecl]
+		.
+		
 storage_class_specifier
         : "typedef"  [typedef]
         | "extern"   [extern]
@@ -126,7 +131,7 @@ type_specifier
         | "void"     [void]
         | struct_or_union_specifier  
         | enum_specifier
-        | ident 
+        | ident [typename]
         .
 
 struct_or_union_specifier
@@ -206,19 +211,19 @@ initializer
         | "{" \inc initializer LIST "," OPT \dec \nl "}"  [initializer]
         .
 decl_or_stat 
-        : (\nl "..." [elipses]) OPT declaration SEQ OPT statement SEQ OPT
+        : (\nl "..." [elipses]) OPT (statement | declaration) SEQ OPT
         .
 
 statement
-        : \dec \nl (ident | "case" constant_expr | "default") ":" \inc statement  [label]
+        : \dec \nl (ident [l] | "case" constant_expr | "default") ":" \inc statement  [label]
         | \dec \nl "{" \inc decl_or_stat \dec \nl "}" \inc [brackets]
-        | \nl macro_ident (\nows "(" expr LIST ")") OPT [macro]
+        | \nl macro_ident (\nows "(" (expr | type_specifier ) LIST ")") OPT [macro]
         | \nl expr OPT ";"
         | \nl "if" \s "(" expr ")" \inc statement  (\dec \nl "else" \inc statement) OPT \dec [if]
         | \nl "switch" \s "(" expr ")" \inc statement \dec [switch]
         | \nl "while" \s "(" expr ")" \inc statement \dec [while]
         | \nl "do" \inc statement \dec \nl "while" \s "(" expr ")" ";"  [do]
-        | \nl "for" \s "(" expr OPT ";" 
+        | \nl "for" \s "(" (for_var_declaration | expr) OPT ";" 
                     (\s expr) OPT ";" 
                     (\s expr) OPT ")" \inc statement \dec [for]
         | \nl "goto" ident ";"  [goto]

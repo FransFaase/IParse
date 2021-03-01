@@ -67,7 +67,7 @@ class Unparser : public Grammar
 public:
 	void setTerminalUnparser(AbstractTerminalUnparser* terminalUnparser) { _terminalUnparser = terminalUnparser; }
 	
-	virtual void unparse(const AbstractParseTree& tree, Ident root_id, AbstractStream<char> *outputStream);
+	void unparse(const AbstractParseTree& tree, Ident root_id, AbstractStream<char> *outputStream);
 
 protected:
 	void unparse_term(const AbstractParseTree& tree, Ident name);

@@ -165,6 +165,7 @@ public:
 	AbstractParseTreeCursor& operator=(const AbstractParseTreeCursor& cursor);
 	AbstractParseTreeCursor& operator=(const AbstractParseTreeIteratorCursor &it);
 	bool operator==(const AbstractParseTreeCursor& rhs) const;
+	bool operator!=(const AbstractParseTreeCursor& rhs) const { return !(*this == rhs); }
 
 	void replaceBy(AbstractParseTree tree);
 	

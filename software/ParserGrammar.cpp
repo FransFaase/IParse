@@ -760,6 +760,14 @@ void addToTreeTypeToRulesMap(Ident tree_type, TreeTypeToGrammarRules** ref_treeT
 	(*ref_treeTypeToRulesMap)->add(new TreeTypeToGrammarRule(top_rule, rec_nt, or_rule));
 }
 
+bool noNonLiterals(GrammarRule* rule)
+{
+	for (; rule != 0; rule = rule->next)
+		if (rule->kind != RK_LIT)
+			return false;
+	return true;
+}
+
 void processOrRules(GrammarOrRules *or_rules, GrammarRule *top_rule, GrammarNonTerminal *rec_nt, GrammarOrRule* or_rule, AbstractUnparseErrorCollector *unparseErrorCollector)
 {
 	if (!or_rule->tree_name.empty())
@@ -767,7 +775,7 @@ void processOrRules(GrammarOrRules *or_rules, GrammarRule *top_rule, GrammarNonT
 	else
 	{
 		GrammarRule* single_rule = or_rule->single_element; 
-		if (rec_nt == 0 && (or_rule->rule == 0 || (single_rule != 0 && single_rule->optional)))
+		if (rec_nt == 0 && (noNonLiterals(or_rule->rule) || (single_rule != 0 && single_rule->optional)))
 			addToTreeTypeToRulesMap(TreeTypeToGrammarRules::id_empty_tree, &or_rules->emptyTreeRules, rec_nt, or_rule, top_rule, unparseErrorCollector);
 		if (rec_nt == 0 && single_rule != 0 && single_rule->kind == RK_TERM && !single_rule->sequential)
 			addToTreeTypeToRulesMap(single_rule->text.terminal->name, &or_rules->terminalToRulesMap, rec_nt, or_rule, top_rule, unparseErrorCollector);

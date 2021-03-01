@@ -140,7 +140,7 @@ static void print_tree_rec( FILE *f, const AbstractParseTree& tree )
             for (AbstractParseTree::iterator child_it(tree); child_it.more(); child_it.next())
             {   
             	print_tree_rec(f, child_it);
-            	if (--nr_parts > 0)
+            	//if (--nr_parts > 0)
                 	fprintf(f, "\n%*.*s    ",
                           print_tree_depth, print_tree_depth, "");
             }
@@ -406,6 +406,16 @@ struct context_entry_t
 
 class CodeCollector
 {
+	struct FunctionDecl
+	{
+		Ident name;
+		//AbstractParseTree parameters;
+		AbstractParseTree decl;
+		//AbstractParseTree resultType;
+		FunctionDecl *next;
+		FunctionDecl(const Ident& n) : name(n), next(0) {}
+		~FunctionDecl() { delete next; }
+	};
 public:
 	CodeCollector()
 	{
@@ -413,17 +423,26 @@ public:
 		enumdecls = AbstractParseTree::makeList();
 		typedefs = AbstractParseTree::makeList();
 		typedecls = AbstractParseTree::makeList();
+		funcdecls = 0;
 		others = AbstractParseTree::makeList();
+	}
+	~CodeCollector()
+	{
+		delete funcdecls;
 	}
 
 	void Process(AbstractParseTree tree)
 	{
 		static Ident id_typedef("typedef");
 		static Ident id_macro("macro");
+		static Ident id_decl("decl");
+		static Ident id_var("var");
 		static Ident id_enum("enum");
 		static Ident id_struct_d("struct_d");
 		static Ident id_union_d("union_d");
 		static Ident id_elipses("elipses");
+		static Ident id_new_style("new_style");
+		static Ident id_pointdecl("pointdecl");
 		
 		AbstractParseTreeCursor definesCursor(defines);
 		AbstractParseTreeCursor enumdeclsCursor(enumdecls);
@@ -439,90 +458,184 @@ public:
 			{
 				definesCursor.appendChild(decl);
 			}
-			else if (decl.part(1).isList())
+			else if (decl.isTree(id_decl))
 			{
-				AbstractParseTreeCursor kind = AbstractParseTreeCursor(decl).part(1).part(1);
-				if (kind.isTree(id_enum))
+				if (decl.part(2).isTree(id_var))
 				{
-					Ident enum_name = kind.part(1).identName();
-					AbstractParseTreeCursor earlierDecl = findMatchingP1P1(enumdeclsCursor, enum_name);
-					if (kind.part(2).part(1).isTree(id_elipses))
+					AbstractParseTreeCursor kind = AbstractParseTreeCursor(decl).part(1).part(1);
+					if (kind.isTree(id_enum))
 					{
-						printf("enum %s with elipses\n", enum_name.val());
-						if (!earlierDecl.attached())
+						Ident enum_name = kind.part(1).identName();
+						AbstractParseTreeCursor earlierDecl = findMatchingP1P1(enumdeclsCursor, enum_name);
+						if (kind.part(2).part(1).isTree(id_elipses))
 						{
-							printf("Error %d.%d: enum %s with elipses has no earlier definition\n",
-								kind.line(), kind.column(), enum_name.val());
+							printf("enum %s with elipses\n", enum_name.val());
+							if (!earlierDecl.attached())
+							{
+								printf("Error %d.%d: enum %s with elipses has no earlier definition\n",
+									kind.line(), kind.column(), enum_name.val());
+							}
+							else
+							{
+								//printf("Combine: ");
+								//earlierDecl.print(stdout, true);
+								//printf("\nWith:    ");
+								//kind.print(stdout, true);
+								//printf("\n");
+								for (AbstractParseTreeIteratorCursor newIt(kind.part(2).part(2)); newIt.more(); newIt.next())
+									earlierDecl.part(2).part(2).appendChild(AbstractParseTreeCursor(newIt));
+								//printf("Into:    ");
+								//earlierDecl.print(stdout, true);
+								//printf("\n");
+							}
 						}
 						else
 						{
-							//printf("Combine: ");
-							//earlierDecl.print(stdout, true);
-							//printf("\nWith:    ");
-							//kind.print(stdout, true);
-							//printf("\n");
-							for (AbstractParseTreeIteratorCursor newIt(kind.part(2).part(2)); newIt.more(); newIt.next())
-								earlierDecl.part(2).part(2).appendChild(AbstractParseTreeCursor(newIt));
-							//printf("Into:    ");
-							//earlierDecl.print(stdout, true);
-							//printf("\n");
+							if (earlierDecl.attached())
+							{
+								printf("Warning %d.%d: redefinition of enum %s from %d.%d\n",
+									kind.line(), kind.column(), enum_name.val(), earlierDecl.line(), earlierDecl.column());
+								earlierDecl.replaceBy(kind);
+							}
+							else
+							{
+								enumdeclsCursor.appendChild(decl);
+							}
 						}
 					}
-					else
+					else if (kind.isTree(id_typedef))
 					{
-						if (earlierDecl.attached())
+						typedefsCursor.appendChild(decl);
+					}
+					else if (kind.isTree(id_struct_d) || kind.isTree(id_union_d))
+					{
+						const char *type = kind.type();
+						//decl.print(stdout, false);
+						Ident name = kind.part(1).identName();
+						AbstractParseTreeCursor earlierDecl = findMatchingP1P1(typedeclsCursor, name);
+						if (kind.part(2).isTree(id_elipses))
 						{
-							printf("Warning %d.%d: redefinition of enum %s from %d.%d\n",
-								kind.line(), kind.column(), enum_name.val(), earlierDecl.line(), earlierDecl.column());
-							earlierDecl.replaceBy(kind);
+							//printf("%s %s with elipses\n", type, name.val());
+							if (!earlierDecl.attached())
+							{
+								printf("Error %d.%d: %s %s with elipses has no earlier definition\n",
+									kind.line(), kind.column(), type, name.val());
+							}
+							else
+							{
+								// printf("Combine:\n"); earlierDecl.print(stdout, false); printf("\nWith:\n"); kind.print(stdout, false); printf("\n");
+								combineMembers(earlierDecl.part(3), kind.part(3));
+							}
 						}
 						else
 						{
-							enumdeclsCursor.appendChild(decl);
+							if (earlierDecl.attached())
+							{
+								printf("Warning %d.%d: redefinition of %s %s from %d.%d\n",
+									kind.line(), kind.column(), type, name.val(), earlierDecl.line(), earlierDecl.column());
+								earlierDecl.replaceBy(kind);
+							}
+							else
+							{
+								typedeclsCursor.appendChild(decl);
+							}
 						}
 					}
 				}
-				else if (kind.isTree(id_typedef))
+				else if (decl.part(2).isTree(id_new_style))
 				{
-					typedefsCursor.appendChild(decl);
-				}
-				else if (kind.isTree(id_struct_d) || kind.isTree(id_union_d))
-				{
-					const char *type = kind.type();
+					//printf("\n\nfunction:\n");
 					//decl.print(stdout, false);
-					Ident name = kind.part(1).identName();
-					AbstractParseTreeCursor earlierDecl = findMatchingP1P1(typedeclsCursor, name);
-					if (kind.part(2).isTree(id_elipses))
+					/* Find function name */
+					Ident name;
+					AbstractParseTreeCursor namePart = decl.part(2).part(1);
+					for (;;)
 					{
-						//printf("%s %s with elipses\n", type, name.val());
-						if (!earlierDecl.attached())
+						if (namePart.isIdent())
 						{
-							printf("Error %d.%d: %s %s with elipses has no earlier definition\n",
-								kind.line(), kind.column(), type, name.val());
+							name = namePart.identName();
+							break;
+						}
+						else if (namePart.isTree(id_pointdecl))
+						{
+							namePart = namePart.part(2);
 						}
 						else
 						{
-							// printf("Combine:\n"); earlierDecl.print(stdout, false); printf("\nWith:\n"); kind.print(stdout, false); printf("\n");
-							combineMembers(earlierDecl.part(3), kind.part(3));
+							printf("Error: Unknown function type %s\n", namePart.type());
+							break;
 						}
+					}
+					//printf("name %s\n", name.val());
+					FunctionDecl *functionDecl = findFunctionDecl(name);
+					AbstractParseTreeCursor earlierDecl = functionDecl->decl;
+					if (   earlierDecl.isEmpty()
+						|| earlierDecl.part(1) != decl.part(1)
+						|| earlierDecl.part(2).part(1) != decl.part(2).part(1)
+						|| earlierDecl.part(2).part(2) != decl.part(2).part(2))
+					{
+						earlierDecl.replaceBy(decl);
 					}
 					else
 					{
-						if (earlierDecl.attached())
+						// Repeated declaration with same signature
+						AbstractParseTreeCursor body = decl.part(2).part(3);
+						if (body.isEmpty())
 						{
-							printf("Warning %d.%d: redefinition of %s %s from %d.%d\n",
-								kind.line(), kind.column(), type, name.val(), earlierDecl.line(), earlierDecl.column());
-							earlierDecl.replaceBy(kind);
+							// Forward declaration after normal declaration
+						}
+						else if (body.part(1).isTree(id_elipses))
+						{
+							for (AbstractParseTreeIteratorCursor stmtIt(body.part(2)); stmtIt.more(); stmtIt.next())
+								body.appendChild(AbstractParseTreeCursor(stmtIt));
 						}
 						else
-						{
-							typedeclsCursor.appendChild(decl);
-						}
+							earlierDecl.replaceBy(decl);
 					}
+					/*
+					printf("result type: ");
+					kind.print(stdout, true);
+					printf("\n");
+					if (decl.part(2).isTree(id_new_style))
+					{
+						printf("New style: %s\n", decl.part(2).part(1).identName().val());
+						printf("Parameters:\n");
+						decl.part(2).part(2).print(stdout, false);
+						printf("Body:\n");
+						decl.part(2).part(3).print(stdout, false);
+						FunctionDecl *functionDecl = findFunctionDecl(decl.part(2).part(1).identName());
+						functionDecl->parameters = decl.part(2).part(2);
+						functionDecl->resultType = kind;
+						AbstractParseTreeCursor body = decl.part(2).part(3);
+						if (body.part(1).isTree(id_elipses))
+						{
+							for (AbstractParseTreeIteratorCursor stmtIt(body.part(2)); stmtIt.more(); stmtIt.next())
+								body.appendChild(AbstractParseTreeCursor(stmtIt));
+						}
+						else
+							functionDecl->body = decl.part(2).part(3);
+					}
+					else if (decl.part(2).isTree(id_decl))
+					{
+						AbstractParseTreeCursor function(decl.part(2).part(1).part(1).part(1));
+						//printf("decl: %s\n", function.part(1).identName().val());
+						//printf("Parameters:\n");
+						//function.part(2).print(stdout, false);
+						//FunctionDecl *functionDecl = findFunctionDecl(function.part(1).identName());
+						//functionDecl->parameters = function.part(2);
+						//functionDecl->resultType = kind;
+					}
+					else
+					{
+						printf("Other:\n");
+						decl.print(stdout, false);
+						othersCursor.appendChild(decl);
+					}
+					*/
 				}
 				else
 				{
-					othersCursor.appendChild(decl);
+					printf("Error: old style function declaration not supported\n");
 				}
 			}
 			else
@@ -599,6 +712,16 @@ private:
 			}
 		}
 	}
+	
+	FunctionDecl* findFunctionDecl(Ident name)
+	{
+		FunctionDecl **ref_decl = &funcdecls;
+		for (; *ref_decl != 0; ref_decl = &(*ref_decl)->next)
+			if ((*ref_decl)->name == name)
+				return *ref_decl;
+		*ref_decl = new FunctionDecl(name);
+		return *ref_decl; 
+	}
 
 public:
 	
@@ -613,11 +736,18 @@ public:
 		printf("// *****\n");
 		typedecls.print(stdout, false);
 		printf("// *****\n");
+		for (FunctionDecl *funcdecl = funcdecls; funcdecl != 0; funcdecl = funcdecl->next)
+		{
+			printf("Function %s\n", funcdecl->name.val());
+		}
+		printf("// *****\n");
 		others.print(stdout, false);
 	}
 	
 	void unparse(const AbstractParseTree &grammarTree)
 	{
+		static Ident id_inc("inc");
+		static Ident id_dec("dec");
 		Unparser unparser;
 		MarkDownCTerminalUnparser markDownCTerminalUnparser;
 		unparser.setTerminalUnparser(&markDownCTerminalUnparser);
@@ -665,6 +795,37 @@ public:
 		unparser.unparse(typedefs, "root", &charToTextFileStream);
 		printf("\n\n// *** struct declarations ***");
 		unparser.unparse(typedecls, "root", &charToTextFileStream);
+		printf("\n\n// *** function forward declarations ***\n\n");
+		for (FunctionDecl *funcdecl = funcdecls; funcdecl != 0; funcdecl = funcdecl->next)
+		{
+			AbstractParseTreeCursor decl = funcdecl->decl;
+			AbstractParseTreeCursor body = decl.part(2).part(3);
+			AbstractParseTree savedBody = body;
+			AbstractParseTree emptyTree;
+			body.replaceBy(emptyTree);
+			unparser.unparse(funcdecl->decl, "declaration", &charToTextFileStream);
+			body.replaceBy(savedBody);
+			//printf(" %s(", funcdecl->name.val());
+			//unparser.unparse(funcdecl->parameters, "parameter_declaration_list", &charToTextFileStream);
+			//printf(");\n");
+		}
+		printf("\n\n// *** functions ***\n\n");
+		for (FunctionDecl *funcdecl = funcdecls; funcdecl != 0; funcdecl = funcdecl->next)
+		{
+			AbstractParseTreeCursor decl = funcdecl->decl;
+			AbstractParseTreeCursor body = decl.part(2).part(3);
+			if (body.isEmpty())
+				printf("// Function %s has no body\n", funcdecl->name.val());
+			else
+				unparser.unparse(funcdecl->decl, "declaration", &charToTextFileStream);
+			
+			//unparser.unparse(funcdecl->resultType, "type_specifier", &charToTextFileStream);
+			//printf(" %s(", funcdecl->name.val());
+			//unparser.unparse(funcdecl->parameters, "parameter_declaration_list", &charToTextFileStream);
+			//printf(")\n{");
+			//unparser.unparse(funcdecl->body, "decl_or_stat", &charToTextFileStream);
+			//printf("\n}\n\n");
+		}
 		printf("\n\n// *** others ***");
 		unparser.unparse(others, "root", &charToTextFileStream);
 	}
@@ -673,11 +834,15 @@ private:
 	AbstractParseTree typedefs;
 	AbstractParseTree enumdecls;
 	AbstractParseTree typedecls;
+	FunctionDecl *funcdecls;
 	AbstractParseTree others;
 };
 
+#include "MarkDownCGrammar.cpp"
+
 int main(int argc, char *argv[])
 {
+/*
 	bool debug_nt = false;
 	bool debug_parse = false;
 	bool debug_scan = false;
@@ -698,6 +863,7 @@ int main(int argc, char *argv[])
 	const char* constBare = "Bare";
 	const char *selected_parser = constBTStack;
 	const char* use_scanner = constBasic;
+*/
 
     if (argc == 1)
     {   printf("Usage: %s <mark down files>\n", argv[0]);
@@ -710,17 +876,17 @@ int main(int argc, char *argv[])
 	ConverterFileReader codePage1252FileReader(codePage1252ToUF8ConverterStream);
 	UTF16ToUTF8ConverterStream utf16ToUTF8ConverterStream;
 	ConverterFileReader utf16FileReader(utf16ToUTF8ConverterStream);
-	AbstractFileReader *selected_file_reader = &plainFileReader;
+	//AbstractFileReader *selected_file_reader = &plainFileReader;
 
 	UTF8ToCodePageConverterStream utf8ToCodePageConverterStream(codePage1252);
 	UTF8ToUTF16ConverterStream utf8ToUTF16ConverterStream;
-	ConverterStream<char, char> *selected_output_converter = 0;
+	//ConverterStream<char, char> *selected_output_converter = 0;
 	
 	AbstractParseTree grammarTree;
 	AbstractParseTree tree;
 	init_IParse_grammar(tree);
 
-
+#ifdef DYN
 	{
 		FILE *fin = fopen("c_md.gr", "rt");
 		if (fin == 0)
@@ -753,6 +919,9 @@ int main(int argc, char *argv[])
 		delete scanner;
 		delete parser;
 	}
+#else
+	init_MarkDownCGrammar(tree);
+#endif
 	
 	AbstractParser* parser = (AbstractParser*)new BTParser();
 	AbstractScanner* scanner = (AbstractScanner*)new MarkDownCScanner();
@@ -761,6 +930,7 @@ int main(int argc, char *argv[])
 
 	CodeCollector codeCollector;
 	
+	printf("/*\n");
     for (int i = 1; i < argc; i++)
 	{
 		const char* filename = argv[i];
@@ -783,6 +953,10 @@ int main(int argc, char *argv[])
             codeCollector.Process(new_tree);
         }
 	}
+	printf("*/\n\n");
+	printf("#include <stdio.h>\n");
+	printf("#include <malloc.h>\n");
+	printf("#include <string.h>\n\n");
 	
 	codeCollector.unparse(tree);
 

@@ -867,7 +867,7 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 
 	if (treeTypeToRules == 0)
 	{
-		fprintf(stderr, "Unparse error\n");
+		fprintf(stderr, "Unparse error (1)\n");
 		return;
 	}
 
@@ -913,7 +913,7 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 
 	if (treeTypeToRule == 0)
 	{
-		fprintf(stderr, "Unparse error\n");
+		fprintf(stderr, "Unparse error (2)\n");
 		return;
 	}
 
