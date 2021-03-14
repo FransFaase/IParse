@@ -56,3 +56,24 @@ diff unparse_scan.pc others/unparse_scan.pc
 
 The diff should not find any differences.
 
+MarkDownC
+---------
+
+Issue the following command to build the MarkDownC processor:
+```
+cd software
+g++ -fno-operator-names all_IParse.cpp -o IParse
+./IParse c_md.gr -o MarkDownCGrammar.cpp
+g++ -g -fno-operator-names -Wall MarkDownC.cpp -o MarkDownC
+```
+Or:
+```
+cd software
+clang++ -fno-operator-names all_IParse.cpp -o IParse
+./IParse c_md.gr -o MarkDownCGrammar.cpp
+clang++ -g -fno-operator-names -Wall MarkDownC.cpp -o MarkDownC
+```
+
+
+
+
