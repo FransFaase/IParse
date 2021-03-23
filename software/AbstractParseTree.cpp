@@ -23,7 +23,7 @@ struct tree_t
 	static void assign(tree_t *&d, tree_t *s);
 	tree_t* clone();
 
-	void setFileName(const char *fn);
+	void setFileName(string_t *fn);
 	void print(FILE *f, bool compact);
 
 	const char *type;
@@ -35,7 +35,7 @@ struct tree_t
 		double double_value;
 		char   char_value;
 	} c;
-	const char *filename;
+	string_t *filename;
 	int line, column;
 	unsigned long refcount;
 
@@ -163,13 +163,21 @@ void tree_t::release()
 				list = next;
 			}
 		}
+		if (filename != 0 && --filename->refcount)
+			delete filename;
+			
 		delete this;
 	}
 }
 
-void tree_t::setFileName(const char* fn)
+void tree_t::setFileName(string_t *fn)
 {
+	string_t* old_filename = filename;
 	filename = fn;
+	if (filename != 0)
+		filename->refcount++;
+	if (old_filename != 0 && --old_filename->refcount == 0)
+		delete old_filename;
 	if (can_have_parts())
 	{
 		for (list_t *list = c.parts; list != 0; list = list->next)
@@ -903,11 +911,11 @@ AbstractParseTree AbstractParseTree::part( int i ) const
 }
 
 
-void AbstractParseTree::setFileName(const char* filename)
+void AbstractParseTree::setFileName(const String& filename)
 {
 	if (_tree != 0)
 	{
-		_tree->setFileName(filename);
+		_tree->setFileName(filename._str);
 	}
 }
 
