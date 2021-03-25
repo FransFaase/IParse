@@ -11,6 +11,7 @@ public:
 	virtual bool match(Ident terminal, const AbstractParseTree& tree) = 0;
 	virtual void unparse(Ident terminal, const AbstractParseTree& tree) = 0;
 	virtual void unparseLiteral(const char* literal) = 0;
+	virtual void unparseLiteral(const char* literal, const AbstractParseTree& tree) { unparseLiteral(literal); }
 	virtual void unparseWhiteSpace(Ident terminal) = 0;
 };
 
@@ -58,8 +59,17 @@ private:
 class MarkDownCTerminalUnparser : public BasicTerminalUnparser
 {
 public:
+	MarkDownCTerminalUnparser(bool with_line_numbers) : BasicTerminalUnparser(), _filename(NULL), _line(0), _column(1), _with_line_numbers(with_line_numbers) {}
 	virtual bool match(Ident terminal, const AbstractParseTree& tree);
 	virtual void unparse(Ident terminal, const AbstractParseTree& tree);
+	virtual void unparseLiteral(const char* literal, const AbstractParseTree& tree);
+	virtual void unparseWhiteSpace(Ident terminal);
+private:
+	void moveToLineAndColumn(const AbstractParseTree& tree);
+	bool _with_line_numbers;
+	const char* _filename;
+	int _line;
+	int _column;
 };
 
 class Unparser : public Grammar
@@ -79,7 +89,7 @@ protected:
 	bool match(const AbstractParseTree& tree, TreeTypeToGrammarRule *treeTypeToRule);
 	void unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rules, bool nt_with_recursive = false);
 	void unparse_rule_elem(const AbstractParseTree& part, GrammarRule* rule);
-	void unparse_rule(AbstractParseTree::iterator partIt, GrammarRule* rule);
+	void unparse_rule(const AbstractParseTree& tree, AbstractParseTree::iterator partIt, GrammarRule* rule);
 	void unparse_rule_single(const AbstractParseTree& part, GrammarRule* rule);
 
 	AbstractTerminalUnparser* _terminalUnparser;

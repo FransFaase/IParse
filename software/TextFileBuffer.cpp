@@ -2,16 +2,15 @@
 #include <stdio.h>
 #include "TextFileBuffer.h"
 
-#define TAB_POS 4
-
 TextFileBuffer::TextFileBuffer()
 {
 	_buffer = 0;
 	_utf8encoded = false;
+	_tab_size = 4;
 }
 
 
-void TextFileBuffer::assign(const char* str, unsigned long len, bool utf8encoded /* = false */)
+void TextFileBuffer::assign(const char* str, unsigned long len, bool utf8encoded /* = false */, unsigned int tab_size /* = 4 */)
 {
 	_buffer = str;
 	_len = len;
@@ -20,6 +19,7 @@ void TextFileBuffer::assign(const char* str, unsigned long len, bool utf8encoded
 	_column = 1;
 	_info = _buffer;
 	_utf8encoded = utf8encoded;
+	_tab_size = tab_size;
 }
 
 void TextFileBuffer::next()
@@ -28,7 +28,7 @@ void TextFileBuffer::next()
     {
       switch(*_info)
       {   case '\t':
-              _column = ((_column + TAB_POS) % TAB_POS) * TAB_POS;
+              _column += _tab_size - (_column - 1) % _tab_size;
               break;
           case '\n':
               _line++;

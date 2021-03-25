@@ -744,12 +744,12 @@ public:
 		others.print(stdout, false);
 	}
 	
-	void unparse(const AbstractParseTree &grammarTree)
+	void unparse(const AbstractParseTree &grammarTree, bool with_line_numbers)
 	{
 		static Ident id_inc("inc");
 		static Ident id_dec("dec");
 		Unparser unparser;
-		MarkDownCTerminalUnparser markDownCTerminalUnparser;
+		MarkDownCTerminalUnparser markDownCTerminalUnparser(with_line_numbers);
 		unparser.setTerminalUnparser(&markDownCTerminalUnparser);
 		class UnparseErrorCollector : public AbstractUnparseErrorCollector
 		{
@@ -788,12 +788,11 @@ public:
 		
 		printf("// *** defines ***\n");
 		unparser.unparse(defines, "root", &charToTextFileStream);
-		printf("\n\n// *** enum declarations ***");
-		//enumdecls.print(stdout, false);
+		printf("\n\n// *** enum declarations ***\n");
 		unparser.unparse(enumdecls, "root", &charToTextFileStream);
-		printf("\n\n// *** typedefs ***");
+		printf("\n\n// *** typedefs ***\n");
 		unparser.unparse(typedefs, "root", &charToTextFileStream);
-		printf("\n\n// *** struct declarations ***");
+		printf("\n\n// *** struct declarations ***\n");
 		unparser.unparse(typedecls, "root", &charToTextFileStream);
 		printf("\n\n// *** function forward declarations ***\n\n");
 		for (FunctionDecl *funcdecl = funcdecls; funcdecl != 0; funcdecl = funcdecl->next)
@@ -814,6 +813,7 @@ public:
 		{
 			AbstractParseTreeCursor decl = funcdecl->decl;
 			AbstractParseTreeCursor body = decl.part(2).part(3);
+			//printf("/*\n"); body.print(stdout, false); printf("\n*/\n");
 			if (body.isEmpty())
 				printf("// Function %s has no body\n", funcdecl->name.val());
 			else
@@ -826,7 +826,7 @@ public:
 			//unparser.unparse(funcdecl->body, "decl_or_stat", &charToTextFileStream);
 			//printf("\n}\n\n");
 		}
-		printf("\n\n// *** others ***");
+		printf("\n\n// *** others ***\n");
 		unparser.unparse(others, "root", &charToTextFileStream);
 	}
 private:
@@ -930,35 +930,48 @@ int main(int argc, char *argv[])
 
 	CodeCollector codeCollector;
 	
+	bool with_line_numbers = true;
 	printf("/*\n");
     for (int i = 1; i < argc; i++)
 	{
 		const char* filename = argv[i];
-       	FILE *fin = fopen(filename, "rt");
-
-        if (fin != 0)
-        {
-			TextFileBuffer textBuffer;
-			plainFileReader.read(fin, textBuffer);
-			
-			AbstractParseTree new_tree;
-			if (!parser->parse(textBuffer, "root", new_tree))
+		if (strcmp(filename, "--pretty") == 0)
+		{
+			with_line_numbers = false;
+		}
+		else
+		{
+		   	FILE *fin = fopen(filename, "rt");
+	
+			if (fin == 0)
+				fprintf(stderr, "Could not open file: %s\n", filename);
+			else
 			{
-				parser->printExpected(stdout, filename, textBuffer);
-				return 0;
+				TextFileBuffer textBuffer;
+				plainFileReader.read(fin, textBuffer);
+				
+				AbstractParseTree new_tree;
+				if (!parser->parse(textBuffer, "root", new_tree))
+				{
+					parser->printExpected(stdout, filename, textBuffer);
+					return 0;
+				}
+				textBuffer.release();
+				fclose(fin);
+				
+				String filenameStr(filename);
+				new_tree.setFileName(filenameStr);
+				//new_tree.print(stdout, false);
+				codeCollector.Process(new_tree);
 			}
-			textBuffer.release();
-            fclose(fin);
-            
-            codeCollector.Process(new_tree);
-        }
+		}
 	}
 	printf("*/\n\n");
 	printf("#include <stdio.h>\n");
 	printf("#include <malloc.h>\n");
 	printf("#include <string.h>\n\n");
 	
-	codeCollector.unparse(tree);
+	codeCollector.unparse(tree, with_line_numbers);
 
 #if 0
     for (int i = 1; i < argc; i++)

@@ -59,6 +59,7 @@ public:
 	bool equalTree( Ident name ) const;
 	const char* type() const;
 	int nrParts() const;
+	const char *filename() const;
 	int line() const;
 	int column() const;
 

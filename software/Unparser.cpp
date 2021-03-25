@@ -219,7 +219,6 @@ void BasicTerminalUnparser::unparseLiteral(const char* literal)
 	}
 	else
 		_state = isalnum(last_ch) ? 'a' : ',';
-
 }
 
 void BasicTerminalUnparser::unparseWhiteSpace(Ident terminal)
@@ -569,6 +568,7 @@ void MarkDownCTerminalUnparser::unparse(Ident terminal, const AbstractParseTree&
 	
 	if (terminal == id_macro_ident)
 	{
+		moveToLineAndColumn(tree);
 		BasicTerminalUnparser::unparse(id_ident, tree);
 		return;
 	}
@@ -582,7 +582,56 @@ void MarkDownCTerminalUnparser::unparse(Ident terminal, const AbstractParseTree&
 		return;
 	}
 	
+	moveToLineAndColumn(tree);
 	BasicTerminalUnparser::unparse(terminal, tree);
+}
+
+void MarkDownCTerminalUnparser::unparseLiteral(const char* literal, const AbstractParseTree& tree)
+{
+	moveToLineAndColumn(tree);
+	BasicTerminalUnparser::unparseLiteral(literal);
+}
+
+void MarkDownCTerminalUnparser::unparseWhiteSpace(Ident terminal)
+{
+	if (!_with_line_numbers)
+		BasicTerminalUnparser::unparseWhiteSpace(terminal);
+}
+
+void MarkDownCTerminalUnparser::moveToLineAndColumn(const AbstractParseTree& tree)
+{
+	if (!_with_line_numbers || tree.isEmpty() || tree.filename() == 0)
+		return;
+	if (tree.filename() != _filename || tree.line() != _line)
+	{
+		if (tree.filename() == _filename && _line < tree.line() && tree.line() < _line + 4)
+		{
+			for (; _line < tree.line(); _line++)
+				_stream.emit('\n');
+		}
+		else
+		{
+			_filename = tree.filename();
+			_line = tree.line();
+			char buffer[30];
+			snprintf(buffer, 29, "\n#line %d \"", _line);
+			for (const char *s = buffer; *s != '\0'; s++)
+				_stream.emit(*s);
+			for (const char *s = _filename; *s != '\0'; s++)
+				_stream.emit(*s);
+			_stream.emit('"');
+			_stream.emit('\n');
+		}
+		_state = ' ';
+		_column = 1;
+	}
+
+	if (_stream.col() < tree.column())
+	{
+		while (_stream.col() < tree.column())
+			_stream.emit(' ');
+		_state = ' ';
+	}
 }
 
 
@@ -832,7 +881,7 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 		}
 		else
 		{
-			unparse_rule(tree, rule);
+			unparse_rule(tree, tree, rule);
 		}
 		return;
 	}
@@ -924,12 +973,12 @@ void Unparser::unparse_or(const AbstractParseTree& tree, GrammarOrRules* or_rule
 		AbstractParseTree::iterator partIt(tree);
 		unparse_or(partIt, treeTypeToRule->rec_nt, treeTypeToRule->rec_nt->recursive != 0);
 		partIt.next();
-		unparse_rule(partIt, treeTypeToRule->rule);
+		unparse_rule(tree, partIt, treeTypeToRule->rule);
 	}
 	else if (treeTypeToRule->is_single)
 		unparse_rule_single(tree, treeTypeToRule->rule);
 	else
-		unparse_rule(tree, treeTypeToRule->rule);
+		unparse_rule(tree, tree, treeTypeToRule->rule);
 
 	return;
 }
@@ -969,12 +1018,13 @@ void Unparser::unparse_rule_elem(const AbstractParseTree& part, GrammarRule* rul
 	}
 }
 
-void Unparser::unparse_rule(AbstractParseTree::iterator partIt, GrammarRule* rule)
+void Unparser::unparse_rule(const AbstractParseTree& tree, AbstractParseTree::iterator partIt, GrammarRule* rule)
 {
 	DEBUG_ENTER("unparse_rule");
-	//DEBUG_ARG_APT(tree);
+	DEBUG_ARG_APT(tree);
 	DEBUG_ARG_G(rule);
 
+	bool first_literal = true;
 	for (; rule != 0; rule = rule->next)
 	{
 		if (rule->kind == RK_TERM || rule->kind == RK_NT || rule->kind == RK_OR_RULE)
@@ -1007,8 +1057,17 @@ void Unparser::unparse_rule(AbstractParseTree::iterator partIt, GrammarRule* rul
 		}
 		else
 		{
-			AbstractParseTree empty_tree;
-			unparse_rule_elem(empty_tree, rule);
+			if (rule->kind == RK_LIT && first_literal)
+			{
+				if (!rule->optional)
+					_terminalUnparser->unparseLiteral(rule->str_value.val(), tree);
+				first_literal = false;
+			}
+			else
+			{
+				AbstractParseTree empty_tree;
+				unparse_rule_elem(empty_tree, rule);
+			}
 		}
 	}
 }
@@ -1019,6 +1078,7 @@ void Unparser::unparse_rule_single(const AbstractParseTree& tree, GrammarRule* r
 	DEBUG_ARG_APT(tree);
 	DEBUG_ARG_G(rule);
 
+	bool first_literal = true;
 	for (; rule != 0; rule = rule->next)
 	{
 		if (rule->kind == RK_TERM || rule->kind == RK_NT || rule->kind == RK_OR_RULE)
@@ -1044,8 +1104,17 @@ void Unparser::unparse_rule_single(const AbstractParseTree& tree, GrammarRule* r
 		}
 		else
 		{
-			AbstractParseTree empty_tree;
-			unparse_rule_elem(empty_tree, rule);
+			if (rule->kind == RK_LIT && first_literal && !tree.isEmpty())
+			{
+				if (!rule->optional)
+					_terminalUnparser->unparseLiteral(rule->str_value.val(), tree);
+				first_literal = false;
+			}
+			else
+			{
+				AbstractParseTree empty_tree;
+				unparse_rule_elem(empty_tree, rule);
+			}
 		}
 	}
 }

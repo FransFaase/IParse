@@ -163,7 +163,7 @@ void tree_t::release()
 				list = next;
 			}
 		}
-		if (filename != 0 && --filename->refcount)
+		if (filename != 0 && --filename->refcount == 0)
 			delete filename;
 			
 		delete this;
@@ -181,7 +181,8 @@ void tree_t::setFileName(string_t *fn)
 	if (can_have_parts())
 	{
 		for (list_t *list = c.parts; list != 0; list = list->next)
-			list->first->setFileName(fn);
+			if (list->first != NULL)
+				list->first->setFileName(fn);
 	}
 }
 
@@ -211,7 +212,12 @@ void tree_t::print(FILE *f, bool compact)
 {
 	static int print_tree_depth = 0;
 	if (line != 0)
-		fprintf(f, "<%d:%d>", line, column);
+	{
+		if (filename != 0)
+			fprintf(f, "<%s:%d:%d>", filename->value, line, column);
+		else
+			fprintf(f, "<%d:%d>", line, column);
+	}
 	if (type == tt_ident)
 		fprintf(f, "%s", c.ident);
 	else if (type == tt_str_value)
@@ -348,6 +354,9 @@ tree_t *tree_t::clone()
 	}
 	result->line = line;
 	result->column = column;
+	result->filename = filename;
+	if (filename != 0)
+		filename->refcount++;
 	return result;
 }
 
@@ -666,6 +675,11 @@ int AbstractParseTreeBase::nrParts() const
 		
 	return nr;
 }	
+
+const char *AbstractParseTreeBase::filename() const
+{
+	return _tree->filename != 0 ? _tree->filename->value : 0;
+}
 
 int AbstractParseTreeBase::line() const 
 {
