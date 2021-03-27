@@ -603,7 +603,7 @@ int main(int argc, char *argv[])
 				BasicTerminalUnparser basicTerminalUnparser;
 				WhiteSpaceTerminalUnparser whiteSpaceTerminalUnparser;
 				ResourceTerminalUnparser resourceTerminalUnparser;
-				MarkDownCTerminalUnparser markDownCTerminalUnparser;
+				MarkDownCTerminalUnparser markDownCTerminalUnparser(true);
 				Unparser unparser;
 				if (use_scanner == constResource)
 					unparser.setTerminalUnparser(&resourceTerminalUnparser);

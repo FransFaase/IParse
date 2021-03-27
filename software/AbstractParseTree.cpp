@@ -258,8 +258,6 @@ void tree_t::print(FILE *f, bool compact)
 				else 
 					fprintf(f, ",\n%*s", print_tree_depth, "");
 			}
-			else if (!compact)
-				fprintf(f, "\n%*s", print_tree_depth, "");
 			first = false;
 			/* fprintf(f, "[%lx]", (longword)l); */
 			if (list->first == 0)
