@@ -159,6 +159,8 @@ void GrammarRule::print(FILE *f)
 		fprintf(f, "OPT ");
 	if (avoid)
 		fprintf(f, "AVOID ");
+	else if (closed)
+		fprintf(f, "CLOSED ");
 	if (nongreedy)
 		fprintf(f, "NONGREEDY ");
 
@@ -182,6 +184,7 @@ Ident id_nt_def = "nt_def";
 Ident id_rule = "rule";
 Ident id_opt = "opt";
 Ident id_avoid = "avoid";
+Ident id_closed = "closed";
 Ident id_nongreedy = "nongreedy";
 Ident id_seq = "seq";
 Ident id_list = "list";
@@ -233,6 +236,8 @@ GrammarRule* Grammar::make_rule(AbstractParseTree::iterator rule, GrammarOrRule*
     {   result->sequential = true;
 		if (elem.part(2).isTree(id_avoid))
 			result->avoid = true;
+		else if (elem.part(2).isTree(id_closed))
+			result->closed = true;
         elem = elem.part(1);
     }
     else if (elem.equalTree(id_chain))
@@ -240,6 +245,8 @@ GrammarRule* Grammar::make_rule(AbstractParseTree::iterator rule, GrammarOrRule*
         result->chain_symbol = elem.part(3).string();
 		if (elem.part(2).isTree(id_avoid))
 			result->avoid = true;
+		else if (elem.part(2).isTree(id_closed))
+			result->closed = true;
         elem = elem.part(1);
     }
     else if (elem.equalTree(id_list))
@@ -247,6 +254,8 @@ GrammarRule* Grammar::make_rule(AbstractParseTree::iterator rule, GrammarOrRule*
         result->chain_symbol = ",";
 		if (elem.part(2).isTree(id_avoid))
 			result->avoid = true;
+		else if (elem.part(2).isTree(id_closed))
+			result->closed = true;
         elem = elem.part(1);
     }
 
@@ -873,6 +882,7 @@ public:
 	virtual void seq() {}
 	virtual void opt() {}
 	virtual void avoid() {}
+	virtual void closed() {}
 	virtual void nongreedy() {}
 	virtual void open(bool combined) {}
 	virtual void close() {}
@@ -952,6 +962,7 @@ public:
 	virtual void seq() override { fprintf(_f, " seq();"); }
 	virtual void opt() override { fprintf(_f, " opt();"); }
 	virtual void avoid() override { fprintf(_f, " avoid();"); }
+	virtual void closed() override { fprintf(_f, " closed();"); }
 	virtual void nongreedy() override { fprintf(_f, " nongreedy();"); }
 	virtual void open(bool combined) override
 	{
@@ -1007,6 +1018,7 @@ public:
 		fprintf(_f, "#define CHAIN(sym) SEQ rule->chain_symbol = sym;\n");
 		fprintf(_f, "#define OPT rule->optional = true;\n");
 		fprintf(_f, "#define AVOID rule->avoid = true;\n");
+		fprintf(_f, "#define CLOSED rule->closed = true;\n");
 		fprintf(_f, "#define NONGREEDY rule->nongreedy = true;\n");
 		fprintf(_f, "#define OPEN NEW_GR(RK_OR_RULE) rule->text.or_rules = new GrammarOrRules; { GrammarOrRule** ref_or_rule = &rule->text.or_rules->first; GrammarOrRule* or_rule; GrammarRule** ref_rule; GrammarRule* rule;\n");
 		fprintf(_f, "#define OPEN_C NEW_GR(RK_COR_RULE) rule->text.or_rules = new GrammarOrRules; { GrammarOrRule** ref_or_rule = &rule->text.or_rules->first; GrammarOrRule* or_rule; GrammarRule** ref_rule; GrammarRule* rule;\n");
@@ -1050,6 +1062,7 @@ public:
 	virtual void seq() override { fprintf(_f, " SEQ"); }
 	virtual void opt() override { fprintf(_f, " OPT"); }
 	virtual void avoid() override { fprintf(_f, " AVOID"); }
+	virtual void closed() override { fprintf(_f, " CLOSED"); }
 	virtual void nongreedy() override { fprintf(_f, " NONGREEDY"); }
 	virtual void open(bool combined) override
 	{
@@ -1152,6 +1165,8 @@ void Grammar::outputCodeFor(GrammarOrRule* or_rule, CodeGenerator &codeGenerator
 				codeGenerator.opt();
 			if (rule->avoid)
 				codeGenerator.avoid();
+			else if (rule->closed)
+				codeGenerator.closed();
 			if (rule->nongreedy)
 				codeGenerator.nongreedy();
 		}
@@ -1309,6 +1324,11 @@ void GrammarLoader::opt()
 void GrammarLoader::avoid()
 {
 	_c->rule->avoid = true;
+}
+
+void GrammarLoader::closed()
+{
+	_c->rule->closed = true;
 }
 
 void GrammarLoader::nongreedy()
@@ -1480,6 +1500,8 @@ void GrammarLoaderForAPT::make_elem(AbstractParseTree elem)
 		seq();
 		if (elem.part(2).isTree(id_avoid))
 			avoid();
+		else if (elem.part(2).isTree(id_closed))
+			closed();
 		return;
     }
     if (elem.equalTree(id_chain))
@@ -1487,6 +1509,8 @@ void GrammarLoaderForAPT::make_elem(AbstractParseTree elem)
         chain(elem.part(3).string());
 		if (elem.part(2).isTree(id_avoid))
 			avoid();
+		else if (elem.part(2).isTree(id_closed))
+			closed();
 		return;
     }
     if (elem.equalTree(id_list))
@@ -1494,6 +1518,8 @@ void GrammarLoaderForAPT::make_elem(AbstractParseTree elem)
 		chain(",");
 		if (elem.part(2).isTree(id_avoid))
 			avoid();
+		else if (elem.part(2).isTree(id_closed))
+			closed();
 		return;
     }
 

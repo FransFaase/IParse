@@ -122,13 +122,14 @@ private:
 class GrammarRule
 {
 public:
-	GrammarRule() : next(0), optional(false), sequential(false), avoid(false), nongreedy(false), last_fail_pos(-1) {}
+	GrammarRule() : next(0), optional(false), sequential(false), avoid(false), closed(false), nongreedy(false), last_fail_pos(-1) {}
 	~GrammarRule();
 	void print(FILE* fout);
 	GrammarRule* next;
     bool optional;
     bool sequential;
 	bool avoid;
+	bool closed;
 	bool nongreedy;
     String chain_symbol;
     int kind;
@@ -254,6 +255,7 @@ protected:
 	void seq();
 	void opt();
 	void avoid();
+	void closed();
 	void nongreedy();
 	void open(bool combined = false);
 	void or();
