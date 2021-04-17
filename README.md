@@ -59,6 +59,16 @@ The diff should not find any differences.
 MarkDownC
 ---------
 
+MarkDownC is a tool for performing [literature programming](https://en.wikipedia.org/wiki/Literate_programming)
+with MarkDown files like the ones that are supported by GitHub. The idea is
+that you give this program a list of MarkDown files with fragments of C code
+and that the program figures out how to put these fragments together in a single
+C file, such that the file can be compiled. (I wrote about the conception of this
+idea in the blog article [Literate programming with Markdown](http://www.iwriteiam.nl/D2101.html#13).)
+For examples on how to use the program, see:
+* [Test of the simple parser](https://github.com/FransFaase/RawParser/blob/master/docs/simple_parser_test.md#testing-with-markdownc)
+* [Test of the caching parser](https://github.com/FransFaase/RawParser/blob/master/docs/simple_parser_test.md#testing-with-markdownc)
+
 Issue the following command to build the MarkDownC processor:
 ```
 cd software
