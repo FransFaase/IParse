@@ -10,6 +10,7 @@ class String
 	friend class AbstractParseTree;
 public:
 	String() : _str(0) {}
+	String(const String &str);
 	String(const char *str);
 	String(const char *str, const char *till);
 	String(string_t *str);

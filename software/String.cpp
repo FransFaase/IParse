@@ -3,6 +3,12 @@
 
 #include "string_t.h"
 
+String::String(const String &str)
+{
+	_str = str._str;
+	if (_str != 0)
+		_str->refcount++;
+}
 String::String(const char *str)
 {
 	_str = new string_t(str);
