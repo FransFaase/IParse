@@ -59,7 +59,7 @@ The diff should not find any differences.
 MarkDownC
 ---------
 
-MarkDownC is a tool for performing [literature programming](https://en.wikipedia.org/wiki/Literate_programming)
+MarkDownC is a tool for performing [literate programming](https://en.wikipedia.org/wiki/Literate_programming)
 with MarkDown files like the ones that are supported by GitHub. The idea is
 that you give this program a list of MarkDown files with fragments of C code
 and that the program figures out how to put these fragments together in a single
