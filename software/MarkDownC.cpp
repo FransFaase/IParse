@@ -424,6 +424,7 @@ public:
 		typedefs = AbstractParseTree::makeList();
 		typedecls = AbstractParseTree::makeList();
 		funcdecls = 0;
+		vardecls = AbstractParseTree::makeList();
 		others = AbstractParseTree::makeList();
 	}
 	~CodeCollector()
@@ -448,6 +449,7 @@ public:
 		AbstractParseTreeCursor enumdeclsCursor(enumdecls);
 		AbstractParseTreeCursor typedefsCursor(typedefs);
 		AbstractParseTreeCursor typedeclsCursor(typedecls);
+		AbstractParseTreeCursor vardeclsCursor(vardecls);
 		AbstractParseTreeCursor othersCursor(others);
 		
 		AbstractParseTreeCursor treeCursor(tree);
@@ -540,6 +542,10 @@ public:
 								typedeclsCursor.appendChild(decl);
 							}
 						}
+					}
+					else
+					{
+						vardeclsCursor.appendChild(decl);
 					}
 				}
 				else if (decl.part(2).isTree(id_new_style))
@@ -794,6 +800,8 @@ public:
 		unparser.unparse(typedefs, "root", &charToTextFileStream);
 		printf("\n\n// *** struct declarations ***\n");
 		unparser.unparse(typedecls, "root", &charToTextFileStream);
+		printf("\n\n// *** variable declarations ***\n");
+		unparser.unparse(vardecls, "root", &charToTextFileStream);
 		printf("\n\n// *** function forward declarations ***\n\n");
 		for (FunctionDecl *funcdecl = funcdecls; funcdecl != 0; funcdecl = funcdecl->next)
 		{
@@ -835,6 +843,7 @@ private:
 	AbstractParseTree enumdecls;
 	AbstractParseTree typedecls;
 	FunctionDecl *funcdecls;
+	AbstractParseTree vardecls;
 	AbstractParseTree others;
 };
 
