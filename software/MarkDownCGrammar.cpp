@@ -971,7 +971,12 @@ void init_MarkDownCGrammar( AbstractParseTree& root )
              	NONE CLOSE CLOSE 
            	NONE CLOSE 
           	ID("macro_def") CLOSE 
-         	ID("macro") CLOSE CLOSE 
+         	ID("macro") CLOSE 
+        	TREE("rule") LIST TREE("wsterminal") ID("nl") CLOSE 
+          	TREE("literal") VAL("#include") 
+           	NONE CLOSE 
+          	ID("string") CLOSE 
+         	ID("include") CLOSE CLOSE 
        	NONE CLOSE 
       	NONE CLOSE 
      	ID("eof") CLOSE 

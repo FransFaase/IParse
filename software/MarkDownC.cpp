@@ -419,6 +419,7 @@ class CodeCollector
 public:
 	CodeCollector()
 	{
+		includes = AbstractParseTree::makeList();
 		defines = AbstractParseTree::makeList();
 		enumdecls = AbstractParseTree::makeList();
 		typedefs = AbstractParseTree::makeList();
@@ -436,6 +437,7 @@ public:
 	{
 		static Ident id_typedef("typedef");
 		static Ident id_macro("macro");
+		static Ident id_include("include");
 		static Ident id_decl("decl");
 		static Ident id_var("var");
 		static Ident id_enum("enum");
@@ -445,6 +447,7 @@ public:
 		static Ident id_new_style("new_style");
 		static Ident id_pointdecl("pointdecl");
 		
+		AbstractParseTreeCursor includesCursor(includes);
 		AbstractParseTreeCursor definesCursor(defines);
 		AbstractParseTreeCursor enumdeclsCursor(enumdecls);
 		AbstractParseTreeCursor typedefsCursor(typedefs);
@@ -459,6 +462,10 @@ public:
 			if (decl.isTree(id_macro))
 			{
 				definesCursor.appendChild(decl);
+			}
+			else if (decl.isTree(id_include))
+			{
+				includesCursor.appendChild(decl);
 			}
 			else if (decl.isTree(id_decl))
 			{
@@ -734,6 +741,8 @@ public:
 	void print()
 	{
 		printf("// *****\n");
+		includes.print(stdout, false);
+		printf("// *****\n");
 		defines.print(stdout, false);
 		printf("// *****\n");
 		enumdecls.print(stdout, false);
@@ -792,6 +801,8 @@ public:
 		unparser.loadGrammarForUnparse(grammarTree, &unparseErrorCollector);
 		CharStreamToFile charToTextFileStream(stdout, /*text*/false);
 		
+		printf("// *** includes ***\n");
+		unparser.unparse(includes, "root", &charToTextFileStream);
 		printf("// *** defines ***\n");
 		unparser.unparse(defines, "root", &charToTextFileStream);
 		printf("\n\n// *** enum declarations ***\n");
@@ -838,6 +849,7 @@ public:
 		unparser.unparse(others, "root", &charToTextFileStream);
 	}
 private:
+	AbstractParseTree includes;
 	AbstractParseTree defines;
 	AbstractParseTree typedefs;
 	AbstractParseTree enumdecls;
