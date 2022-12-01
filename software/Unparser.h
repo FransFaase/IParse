@@ -59,7 +59,7 @@ private:
 class MarkDownCTerminalUnparser : public BasicTerminalUnparser
 {
 public:
-	MarkDownCTerminalUnparser(bool with_line_numbers) : BasicTerminalUnparser(), _filename(NULL), _line(0), _column(1), _with_line_numbers(with_line_numbers) {}
+	MarkDownCTerminalUnparser(bool with_line_numbers) : BasicTerminalUnparser(), _with_line_numbers(with_line_numbers), _filename(NULL), _line(0), _column(1) {}
 	virtual bool match(Ident terminal, const AbstractParseTree& tree);
 	virtual void unparse(Ident terminal, const AbstractParseTree& tree);
 	virtual void unparseLiteral(const char* literal, const AbstractParseTree& tree);
