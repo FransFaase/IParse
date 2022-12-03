@@ -599,8 +599,9 @@ public:
 						}
 						else if (body.part(1).isTree(id_elipses))
 						{
+							AbstractParseTreeCursor earlierBody = earlierDecl.part(2).part(3).part(2);
 							for (AbstractParseTreeIteratorCursor stmtIt(body.part(2)); stmtIt.more(); stmtIt.next())
-								body.appendChild(AbstractParseTreeCursor(stmtIt));
+								earlierBody.appendChild(AbstractParseTreeCursor(stmtIt));
 						}
 						else
 							earlierDecl.replaceBy(decl);
