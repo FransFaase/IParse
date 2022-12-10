@@ -461,7 +461,12 @@ public:
 			AbstractParseTreeCursor decl(declIt);
 			if (decl.isTree(id_macro))
 			{
-				definesCursor.appendChild(decl);
+				Ident define_name = decl.part(1).identName();
+				AbstractParseTreeCursor earlierDecl = findMatching(definesCursor, define_name);
+				if (earlierDecl.attached())
+					earlierDecl.replaceBy(decl);
+				else 
+					definesCursor.appendChild(decl);
 			}
 			else if (decl.isTree(id_include))
 			{
@@ -670,6 +675,17 @@ private:
 		return AbstractParseTreeCursor();
 	}
 	
+	AbstractParseTreeCursor findMatching(const AbstractParseTreeCursor& list, Ident name)
+	{
+		for (AbstractParseTreeIteratorCursor listIt(list); listIt.more(); listIt.next())
+		{
+			AbstractParseTreeCursor elem = AbstractParseTreeCursor(listIt);
+			if (elem.part(1).identName() == name)
+				return elem;
+		}
+		return AbstractParseTreeCursor();
+	}
+
 	void combineMembers(AbstractParseTreeCursor oldMembers, const AbstractParseTreeCursor &newMembers)
 	{
 		static Ident id_type("type");
