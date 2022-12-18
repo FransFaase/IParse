@@ -49,7 +49,29 @@ void AbstractParser::expected_string(TextFilePos& pos, const char *s, bool is_ke
 
 void AbstractParser::printExpected(FILE *f, const char* filename, const TextFileBuffer& textBuffer)
 {   
-    fprintf(f, "%s (%d.%d) Expected:\n", filename, _f_file_pos.line(), _f_file_pos.column());
+    fprintf(f, "%s (%d.%d) `", filename, _f_file_pos.line(), _f_file_pos.column());
+	TextFileBuffer buffer = textBuffer;
+	buffer = _f_file_pos;
+	for (int j = 0; j < 10; j++)
+	{
+		if (buffer.eof())
+		{	fprintf(f, "<eof>");
+			break;
+		}
+		char ch = *buffer;
+		if (ch == '\0')
+			fprintf(f, "\\0");
+		else if (ch == '\t')
+			fprintf(f, "\\t");
+		else if (ch == '\n')
+			fprintf(f, "\\n");
+		else if (ch > '\0' && ch < ' ')
+			fprintf(f, "\\?");
+		else	
+			fprintf(f, "%c", ch);
+		buffer.next();
+	}
+	fprintf(f, "` expected:\n");
     for (int i = 0; i < _nr_exp_syms; i++)
     {   bool unique = true;
         int j;
@@ -71,28 +93,6 @@ void AbstractParser::printExpected(FILE *f, const char* filename, const TextFile
             fprintf(f, "\n");
         }
     }
-	TextFileBuffer buffer = textBuffer;
-	buffer = _f_file_pos;
-	fprintf(f, "at: |");
-	for (int j = 0; j < 10; j++)
-	{
-		if (buffer.eof())
-		{	fprintf(f, "<eof>");
-			break;
-		}
-		char ch = *buffer;
-		if (ch == '\0')
-			fprintf(f, "\\0");
-		else if (ch == '\t')
-			fprintf(f, "\\t");
-		else if (ch == '\n')
-			fprintf(f, "\\n");
-		else
-			fprintf(f, "%c", ch);
-		buffer.next();
-	}
-	fprintf(f, "|\n");
-
 }
 
 /* Special strings for identifiers and context */

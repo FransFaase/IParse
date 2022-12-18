@@ -820,7 +820,7 @@ public:
 		
 		printf("// *** includes ***\n");
 		unparser.unparse(includes, "root", &charToTextFileStream);
-		printf("// *** defines ***\n");
+		printf("\n\n// *** defines ***\n");
 		unparser.unparse(defines, "root", &charToTextFileStream);
 		printf("\n\n// *** enum declarations ***\n");
 		unparser.unparse(enumdecls, "root", &charToTextFileStream);
@@ -969,7 +969,6 @@ int main(int argc, char *argv[])
 	CodeCollector codeCollector;
 	
 	bool with_line_numbers = true;
-	printf("/*\n");
     for (int i = 1; i < argc; i++)
 	{
 		const char* filename = argv[i];
@@ -982,7 +981,10 @@ int main(int argc, char *argv[])
 		   	FILE *fin = fopen(filename, "rt");
 	
 			if (fin == 0)
-				fprintf(stderr, "Could not open file: %s\n", filename);
+			{
+				fprintf(stdout, "/* Could not open file: %s\n", filename);
+				return 0;
+			}
 			else
 			{
 				TextFileBuffer textBuffer;
@@ -991,6 +993,7 @@ int main(int argc, char *argv[])
 				AbstractParseTree new_tree;
 				if (!parser->parse(textBuffer, "root", new_tree))
 				{
+					printf("/* ");
 					parser->printExpected(stdout, filename, textBuffer);
 					return 0;
 				}
@@ -1004,7 +1007,6 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	printf("*/\n\n");
 	printf("#include <stdio.h>\n");
 	printf("#include <malloc.h>\n");
 	printf("#include <string.h>\n\n");
