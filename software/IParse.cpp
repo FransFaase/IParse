@@ -136,7 +136,7 @@ static void print_tree_to_xml( FILE *f, const AbstractParseTree& tree )
 	}
 	else if (tree.isString())
 	{   fprintf(f, "<STRING>");
-		print_string_to_xml(f, tree.identName().val());
+		print_string_to_xml(f, tree.string().val());
 		fprintf(f, "</STRING>");
 	}
 	else if (tree.isInt())
@@ -577,11 +577,7 @@ int main(int argc, char *argv[])
 						 ? stdout : fopen(file_name, "w");
 
 			if (fout != 0)
-			{   char *dot = strstr(file_name, ".");
-				if (dot)
-					*dot = '\0';
-
-				print_tree_to_xml(fout, tree);
+			{   print_tree_to_xml(fout, tree);
 				fclose(fout);
 			}
 			else
