@@ -4,49 +4,124 @@
 #include "Ident.h"
 #include "XMLParser.h"
 
-
-bool XMLParser::parse(const TextFileBuffer& textBuffer, AbstractParseTree& result)
+XMLIterator::XMLIterator(const TextFileBuffer& textBuffer)
 {
 	_text = textBuffer;
-
-	result.createTree("XML");
-
-	while (parse_xml(result)) {}
-
-	return _text.eof();
+	_state = ' ';
+	next();
 }
 
-void XMLParser::skip_spaces()
+void XMLIterator::skip_spaces()
 {
 	while (!_text.eof() && isspace((unsigned char)*_text))
 		_text.next();
 }
 
-bool XMLParser::parse_xml(AbstractParseTree& parent)
+
+void XMLIterator::next()
 {
-	TextFilePos _save_pos = _text;
+	if (_state == '\0' || _state == 'e')
+		return;
+	
 	skip_spaces();
 
 	if (_text.eof())
-		return false;
+	{
+		_state = '\0';
+		return;
+	}
+	
+	if (_state == 'o' || _state == 'a')
+	{
+		if (*_text == '/')
+		{
+			_text.next();
+			skip_spaces();
+			if (*_text != '>')
+			{
+				_state = 'e';
+				return;
+			}
+			_text.next();
+			_state = 'c';
+			return;
+		}
+		else if (*_text == '>')
+		{
+			_text.next();
+			skip_spaces();
+			if (_text.eof())
+			{
+				_state = '\0';
+				return;
+			}
+		}
+		else
+		{
+			line = _text.line();
+			column = _text.column();
+
+			int i = 0;
+			while (!_text.eof() && !isspace((unsigned char)*_text) && *_text != '>' && *_text != '/' && *_text != '=')
+			{
+				if (i < 99)
+					attr[i++] = *_text;
+				_text.next();
+			}
+			attr[i] = '\0';
+			if (_text.eof() || *_text != '=')
+			{
+				_state = 'e';
+				return;
+			}
+			_text.next();
+			if (_text.eof() || *_text != '"')
+			{
+				_state = 'e';
+				return;
+			}
+			_text.next();
+			parse_string('"');
+			if (_text.eof() || *_text != '"')
+			{
+				_state = 'e';
+				return;
+			}
+			_text.next();
+			_state = 'a';
+			return;
+		}
+	}
+	
+	line = _text.line();
+	column = _text.column();
 
 	if (*_text == '<')
 	{
 		if (_text[1] == '/')
-			return false;
-		else if (_text[1] == '?')
 		{
 			_text.advance(2);
-			TextFilePos sp = _text;
 			int i = 0;
-			while (!_text.eof() && *_text != '?')
+			while (!_text.eof() && !isspace((unsigned char)*_text) && *_text != '>')
 			{
+				if (i < 99)
+					tag[i++] = *_text;
 				_text.next();
-				i++;
 			}
-			String line;
-			String::filler filler(line);
-			_text = sp;
+			tag[i] = '\0';
+			if (*_text != '>')
+			{
+				_state = 'e';
+				return;
+			}
+			_text.next();
+			_state = 'c';
+			return;
+		}
+		if (_text[1] == '?')
+		{
+			_text.advance(2);
+			String::filler filler(value);
 			while (!_text.eof() && *_text != '?')
 			{
 				filler << *_text;
@@ -57,27 +132,13 @@ bool XMLParser::parse_xml(AbstractParseTree& parent)
 				_text.next();
 			if (!_text.eof() && *_text == '>')
 				_text.next();
-			skip_spaces();
-
-			AbstractParseTree child;
-			child.createTree("?");
-			child.setLineColumn(sp.line(), sp.column());
-			child.appendChild(line);
-			parent.appendChild(child);
+			_state = 'm';
+			return;
 		}
-		else if (_text[1] == '!')
+		if (_text[1] == '!')
 		{
 			_text.advance(2);
-			TextFilePos sp = _text;
-			int i = 0;
-			while (!_text.eof() && *_text != '>')
-			{
-				_text.next();
-				i++;
-			}
-			String line;
-			String::filler filler(line);
-			_text = sp;
+			String::filler filler(value);
 			while (!_text.eof() && *_text != '>')
 			{
 				filler << *_text;
@@ -86,142 +147,31 @@ bool XMLParser::parse_xml(AbstractParseTree& parent)
 			filler << '\0';
 			if (!_text.eof() && *_text == '>')
 				_text.next();
-			skip_spaces();
-
-			AbstractParseTree child;
-			child.createTree("!");
-			child.setLineColumn(sp.line(), sp.column());
-			child.appendChild(line);
-			parent.appendChild(child);
+			_state = '!';
+			return;
 		}
-		else
+		_text.next();
+		char name[100];
+		int i = 0;
+		while (!_text.eof() && !isspace((unsigned char)*_text) && *_text != '>' && *_text != '/')
 		{
-			int line = _text.line();
-			int column = _text.column();
+			if (i < 99)
+				tag[i++] = *_text;
 			_text.next();
-			char name[100];
-			int i = 0;
-			while (!_text.eof() && !isspace((unsigned char)*_text) && *_text != '>' && *_text != '/')
-			{
-				if (i < 99)
-					name[i++] = *_text;
-				_text.next();
-			}
-			name[i] = '\0';
-			skip_spaces();
-			if (_text.eof())
-				return false;
-
-			AbstractParseTree child;
-			child.createTree(name);
-			child.setLineColumn(line, column);
-			parent.appendChild(child);
-
-			while (!_text.eof() && *_text != '>' && *_text != '/')
-			{
-				line = _text.line();
-				column = _text.column();
-
-				char attr_name[100];
-				int i = 0;
-				while (!_text.eof() && !isspace((unsigned char)*_text) && *_text != '>' && *_text != '/' && *_text != '=')
-				{
-					if (i < 99)
-						attr_name[i++] = *_text;
-					_text.next();
-				}
-				attr_name[i] = '\0';
-				if (!_text.eof() && *_text == '=')
-				{
-					_text.next();
-					if (!_text.eof() && *_text == '"')
-					{
-						_text.next();
-						String attr_value;
-						parse_string('"', attr_value);
-						if (!_text.eof() && *_text == '"')
-							_text.next();
-						skip_spaces();
-
-						AbstractParseTree attr;
-						attr.createTree("=");
-						attr.setLineColumn(line, column);
-						child.appendChild(attr);
-						attr.appendChild(AbstractParseTree(Ident(attr_name)));
-						attr.appendChild(AbstractParseTree(attr_value));
-					}
-				}
-			}
-			if (*_text == '/')
-			{
-				_text.next();
-				skip_spaces();
-				if (!_text.eof() && *_text == '>')
-				{
-					_text.next();
-					skip_spaces();
-				}
-			}
-			else if (*_text == '>')
-			{
-				_text.next();
-				while (parse_xml(child)) {}
-
-				if (!_text.eof() && *_text == '<')
-				{
-					_text.next();
-					if (!_text.eof() && *_text == '/')
-					{
-						_text.next();
-						while (!_text.eof() && *_text != '>')
-							_text.next();
-						if (!_text.eof() && *_text == '>')
-							_text.next();
-						skip_spaces();
-					}
-				}
-			}
 		}
+		tag[i] = '\0';
+		skip_spaces();
+		_state = 'o';
+		return;
 	}
-	else
-	{
-		_text = _save_pos;
-		String content;
-		parse_string('<', content);
-		parent.appendChild(AbstractParseTree(content));
-	}
-	return true;
+	
+	parse_string('<');
+	_state = 't';
 }
 
-void XMLParser::parse_string(char terminator, String &result)
+void XMLIterator::parse_string(char terminator)
 {
-	TextFilePos sp = _text;
-	int i = 0;
-	while (!_text.eof() && *_text != terminator)
-	{
-		if (*_text == '&')
-		{
-			if (strncmp(_text, "&lt;", 4) == 0)
-				_text.advance(4);
-			else if (strncmp(_text, "&gt;", 4) == 0)
-				_text.advance(4);
-			else if (strncmp(_text, "&amp;", 5) == 0)
-				_text.advance(5);
-			else
-			{
-				_text.next();
-				while (!_text.eof() && *_text != ';')
-					_text.next();
-				if (!_text.eof() && *_text == ';')
-					_text.next();
-			}
-		}
-		else
-			_text.next();
-		i++;
-	}
-	String::filler filler(result);
-	_text = sp;
+	String::filler filler(value);
 	while (!_text.eof() && *_text != terminator)
 	{
 		if (*_text == '&')
@@ -256,7 +206,78 @@ void XMLParser::parse_string(char terminator, String &result)
 			filler << *_text;
 			_text.next();
 		}
-		i++;
 	}
 	filler << '\0';
 }
+
+bool parse_xml2(XMLIterator &it, AbstractParseTree& parent)
+{
+	if (!it.more())
+		return false;
+
+	if (it.isCloseTag())
+		return false;
+		
+	if (it.isMeta())
+	{
+		AbstractParseTree child;
+		child.createTree("?");
+		child.setLineColumn(it.line, it.column);
+		child.appendChild(it.value);
+		parent.appendChild(child);
+		it.next();
+	}
+	else if (it.isComment())
+	{
+		AbstractParseTree child;
+		child.createTree("!");
+		child.setLineColumn(it.line, it.column);
+		child.appendChild(it.value);
+		parent.appendChild(child);
+		it.next();
+	}
+	else if (it.isOpenTag())
+	{
+		AbstractParseTree child;
+		child.createTree(it.tag);
+		child.setLineColumn(it.line, it.column);
+		parent.appendChild(child);
+		it.next();
+
+		for (; it.isAttr(); it.next())
+		{
+			AbstractParseTree attr;
+			attr.createTree("=");
+			attr.setLineColumn(it.line, it.column);
+			child.appendChild(attr);
+			attr.appendChild(AbstractParseTree(Ident(it.attr)));
+			attr.appendChild(AbstractParseTree(it.value));
+		}
+		while (parse_xml2(it, child)) {}
+		
+		if (!it.isCloseTag())
+			return false;
+		
+		it.next();
+	}
+	else if (it.isText())
+	{
+		parent.appendChild(AbstractParseTree(it.value.val()));
+		it.next();
+	}
+	else
+	{
+		return false;
+	}
+	return true;
+}
+
+bool XMLParser::parse(const TextFileBuffer& textBuffer, AbstractParseTree& result)
+{
+	result.createTree("XML");
+	XMLIterator it(textBuffer);
+	parse_xml2(it, result);
+	
+	return !it.more();
+}
+
