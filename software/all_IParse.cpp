@@ -18,6 +18,7 @@
 #include "CodePages.cpp"
 #include "Streams.cpp"
 #include "TextReader.cpp"
+#include "XMLIterator.cpp"
 #include "XMLParser.cpp"
 #include "Unparser.cpp"
 #include "IParse.cpp"

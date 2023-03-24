@@ -36,7 +36,7 @@
 #define ASSERT assert
 
 
-bool hasExtenstion(char *filename, char *ext)
+bool hasExtenstion(char *filename, const char *ext)
 {
 	int filename_len = strlen(filename);
 	int ext_at = filename_len - strlen(ext);
@@ -897,7 +897,7 @@ private:
 	{
 		if (rule != 0)
 		{
-			fprintf(_f, "\t%d.%d ", rule->line, rule->column);
+			fprintf(_f, "\t%ld.%ld ", rule->line, rule->column);
 			rule->print(_f);
 			fprintf(_f, "\n");
 		}
