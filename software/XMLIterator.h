@@ -13,8 +13,11 @@ public:
 	bool isMeta() { return _state == '?'; }
 	bool isComment() { return _state == '!'; }
 	bool isOpenTag() { return _state == 'o'; }
+	bool isOpenTag(const char *name) { return _state == 'o' && strcmp(tag, name) == 0; }
+	bool acceptOpenTag(const char *name) { if (isOpenTag(name)) { next(); return true; } return false; }
 	bool isCloseTag() { return _state == 'c'; }
 	bool isAttr() { return _state == 'a'; }
+	bool isAttr(const char *name) { return _state == 'a' && strcmp(attr, name) == 0; }
 	bool isText() { return _state == 't'; }
 	char tag[100];
 	char attr[100];
