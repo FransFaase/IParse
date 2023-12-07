@@ -507,7 +507,7 @@ public:
 						{
 							if (earlierDecl.attached())
 							{
-								printf("Warning %d.%d: redefinition of enum %s from %d.%d\n",
+								printf("/* Warning %d.%d: redefinition of enum %s from %d.%d */\n",
 									kind.line(), kind.column(), enum_name.val(), earlierDecl.line(), earlierDecl.column());
 								earlierDecl.replaceBy(kind);
 							}
@@ -545,7 +545,7 @@ public:
 						{
 							if (earlierDecl.attached())
 							{
-								printf("Warning %d.%d: redefinition of %s %s from %d.%d\n",
+								printf("/* Warning %d.%d: redefinition of %s %s from %d.%d */\n",
 									kind.line(), kind.column(), type, name.val(), earlierDecl.line(), earlierDecl.column());
 								earlierDecl.replaceBy(kind);
 							}
@@ -723,14 +723,14 @@ private:
 						}
 						else
 						{
-							printf("Warning: replacing %d.%d with %d.%d\n",
+							printf("/* Warning: replacing %d.%d with %d.%d */\n",
 								matching.line(), matching.column(), newMember.line(), newMember.column());
 							matching.replaceBy(newMember);
 						}
 					}
 					else
 					{
-						printf("Warning: replacing %d.%d with %d.%d\n",
+						printf("/* Warning: replacing %d.%d with %d.%d */\n",
 							matching.line(), matching.column(), newMember.line(), newMember.column());
 						matching.replaceBy(newMember);
 					}
@@ -795,7 +795,7 @@ public:
 			}
 			virtual void warningTypeReachedThroughDifferentPaths(Ident type, GrammarRule* rule, GrammarRule *rule1, GrammarRule *rule2)
 			{
-				fprintf(_f, "Warning: rule for type %s reached through different paths\n", type.val());
+				fprintf(_f, "/* Warning: rule for type %s reached through different paths */\n", type.val());
 				print_rule(rule);
 				print_rule(rule1);
 				print_rule(rule2);
@@ -1194,7 +1194,7 @@ int main(int argc, char *argv[])
 					}
 					virtual void warningTypeReachedThroughDifferentPaths(Ident type, GrammarRule* rule, GrammarRule *rule1, GrammarRule *rule2)
 					{
-						fprintf(_f, "Warning: rule for type %s reached through different paths\n", type.val());
+						fprintf(_f, "/* Warning: rule for type %s reached through different paths */\n", type.val());
 						print_rule(rule);
 						print_rule(rule1);
 						print_rule(rule2);
