@@ -96,7 +96,10 @@ constant_expr
         .
 
 declaration
-        : \nl ( storage_class_specifier | type_specifier) SEQ OPT NONGREEDY
+        : \nl ( storage_class_specifier | simple_type_specifier) SEQ OPT NONGREEDY
+          ( ( declarator (\s "=" \s initializer) OPT) LIST ";"  [var]
+          ) [decl]
+        | \nl ( storage_class_specifier | type_specifier) SEQ OPT NONGREEDY
           ( func_declarator "(" parameter_declaration_list OPT ")"
             ( ";" | \nl "{" \inc decl_or_stat \nl \dec "}" )  [new_style]
           | func_declarator "(" ident_list OPT ")" declaration SEQ OPT
@@ -115,6 +118,21 @@ storage_class_specifier
         | "static"   [static]
         | "auto"     [auto]
         | "register" [register]
+        .
+
+simple_type_specifier
+        : "char"     [char]
+        | "short"    [short]
+        | "int"      [int]
+        | "long"     [long]
+        | "signed"   [signed]
+        | "unsigned" [unsigned]
+        | "float"    [float]
+        | "double"   [double]
+        | "const"    [const]
+        | "volatile" [volatile]
+        | "void"     [void]
+        | ident [typename]
         .
 
 type_specifier

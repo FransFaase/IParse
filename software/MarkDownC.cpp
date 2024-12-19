@@ -409,12 +409,18 @@ class CodeCollector
 	struct FunctionDecl
 	{
 		Ident name;
-		//AbstractParseTree parameters;
 		AbstractParseTree decl;
-		//AbstractParseTree resultType;
 		FunctionDecl *next;
 		FunctionDecl(const Ident& n) : name(n), next(0) {}
 		~FunctionDecl() { delete next; }
+	};
+	struct VariableDecl
+	{
+		Ident name;
+		AbstractParseTree decl;
+		VariableDecl *next;
+		VariableDecl(const Ident& n) : name(n), next(0) {}
+		~VariableDecl() { delete next; }
 	};
 public:
 	CodeCollector()
@@ -425,12 +431,13 @@ public:
 		typedefs = AbstractParseTree::makeList();
 		typedecls = AbstractParseTree::makeList();
 		funcdecls = 0;
-		vardecls = AbstractParseTree::makeList();
+		vardecls = 0;
 		others = AbstractParseTree::makeList();
 	}
 	~CodeCollector()
 	{
 		delete funcdecls;
+		delete vardecls;
 	}
 
 	void Process(AbstractParseTree tree)
@@ -446,13 +453,13 @@ public:
 		static Ident id_elipses("elipses");
 		static Ident id_new_style("new_style");
 		static Ident id_pointdecl("pointdecl");
+		static Ident id_array("array");
 		
 		AbstractParseTreeCursor includesCursor(includes);
 		AbstractParseTreeCursor definesCursor(defines);
 		AbstractParseTreeCursor enumdeclsCursor(enumdecls);
 		AbstractParseTreeCursor typedefsCursor(typedefs);
 		AbstractParseTreeCursor typedeclsCursor(typedecls);
-		AbstractParseTreeCursor vardeclsCursor(vardecls);
 		AbstractParseTreeCursor othersCursor(others);
 		
 		AbstractParseTreeCursor treeCursor(tree);
@@ -557,7 +564,53 @@ public:
 					}
 					else
 					{
-						vardeclsCursor.appendChild(decl);
+						//printf("/*\n\nvariable:\n");
+						AbstractParseTree var_decls = decl;
+						//var_decls.print(stdout, false);
+						//var_decls.part(2).print(stdout, false);
+						AbstractParseTree vars = decl.part(2).part(1);
+						for (AbstractParseTreeIteratorCursor varIt(vars); varIt.more(); varIt.next())
+						{
+							Ident name;
+							AbstractParseTreeCursor var = varIt;
+							AbstractParseTreeCursor namePart = var.part(1);
+							//printf("\nVar:\n");
+							//namePart.print(stdout, false);
+							for (;;)
+							{
+								if (namePart.isIdent())
+								{
+									name = namePart.identName();
+									break;
+								}
+								else if (namePart.isTree(id_pointdecl))
+								{
+									namePart = namePart.part(2);
+								}
+								else if (namePart.isTree(id_array))
+								{
+									namePart = namePart.part(1);
+								}
+								else
+								{
+									printf("Error: Unknown function type %s\n", namePart.type());
+									namePart.print(stdout, false);
+									printf("\n");
+									break;
+								}
+							}
+							//printf("name %s\n", name.val());
+							VariableDecl *variableDecl = findVariableDecl(name);
+							AbstractParseTree newVarList;
+							newVarList.createList();
+							newVarList.appendChild(var);
+							AbstractParseTreeCursor var_decls_cur = var_decls;
+							var_decls_cur.part(2).part(1).replaceBy(newVarList);
+							//printf("\nReplaced:\n");
+							//var_decls.print(stdout, false);
+							variableDecl->decl = var_decls;
+						}
+						//printf("\n*/");
 					}
 				}
 				else if (decl.part(2).isTree(id_new_style))
@@ -750,8 +803,20 @@ private:
 			if ((*ref_decl)->name == name)
 				return *ref_decl;
 		*ref_decl = new FunctionDecl(name);
-		return *ref_decl; 
+		return *ref_decl;
 	}
+
+	VariableDecl* findVariableDecl(Ident name)
+	{
+		VariableDecl **ref_decl = &vardecls;
+		for (; *ref_decl != 0; ref_decl = &(*ref_decl)->next)
+			if ((*ref_decl)->name == name)
+				return *ref_decl;
+		*ref_decl = new VariableDecl(name);
+		return *ref_decl;
+	}
+
+
 
 public:
 	
@@ -829,7 +894,10 @@ public:
 		printf("\n\n// *** struct declarations ***\n");
 		unparser.unparse(typedecls, "root", &charToTextFileStream);
 		printf("\n\n// *** variable declarations ***\n");
-		unparser.unparse(vardecls, "root", &charToTextFileStream);
+		for (VariableDecl *vardecl = vardecls; vardecl != 0; vardecl = vardecl->next)
+		{
+			unparser.unparse(vardecl->decl, "declaration", &charToTextFileStream);
+		}
 		printf("\n\n// *** function forward declarations ***\n\n");
 		for (FunctionDecl *funcdecl = funcdecls; funcdecl != 0; funcdecl = funcdecl->next)
 		{
@@ -872,7 +940,7 @@ private:
 	AbstractParseTree enumdecls;
 	AbstractParseTree typedecls;
 	FunctionDecl *funcdecls;
-	AbstractParseTree vardecls;
+	VariableDecl *vardecls;
 	AbstractParseTree others;
 };
 

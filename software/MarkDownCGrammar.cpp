@@ -355,6 +355,27 @@ void init_MarkDownCGrammar( AbstractParseTree& root )
   	LIST TREE("rule") LIST TREE("wsterminal") ID("nl") CLOSE 
      	TREE("opt") TREE("seq") LIST TREE("rule") LIST ID("storage_class_specifier") CLOSE 
          	NONE CLOSE 
+        	TREE("rule") LIST ID("simple_type_specifier") CLOSE 
+         	NONE CLOSE CLOSE 
+       	NONE CLOSE 
+      	TREE("nongreedy") CLOSE CLOSE 
+     	LIST TREE("rule") LIST TREE("list") LIST TREE("rule") LIST ID("declarator") 
+            	TREE("opt") LIST TREE("rule") LIST TREE("wsterminal") ID("s") CLOSE 
+                	TREE("literal") VAL("=") 
+                 	NONE CLOSE 
+                	TREE("wsterminal") ID("s") CLOSE 
+                	ID("initializer") CLOSE 
+               	NONE CLOSE CLOSE 
+             	NONE CLOSE CLOSE 
+           	NONE CLOSE CLOSE 
+         	NONE CLOSE 
+        	TREE("literal") VAL(";") 
+         	NONE CLOSE CLOSE 
+       	ID("var") CLOSE CLOSE CLOSE 
+    	ID("decl") CLOSE 
+   	TREE("rule") LIST TREE("wsterminal") ID("nl") CLOSE 
+     	TREE("opt") TREE("seq") LIST TREE("rule") LIST ID("storage_class_specifier") CLOSE 
+         	NONE CLOSE 
         	TREE("rule") LIST ID("type_specifier") CLOSE 
          	NONE CLOSE CLOSE 
        	NONE CLOSE 
@@ -445,6 +466,42 @@ void init_MarkDownCGrammar( AbstractParseTree& root )
    	TREE("rule") LIST TREE("literal") VAL("register") 
       	NONE CLOSE CLOSE 
     	ID("register") CLOSE CLOSE CLOSE 
+ 	TREE("nt_def") ID("simple_type_specifier") 
+  	LIST TREE("rule") LIST TREE("literal") VAL("char") 
+      	NONE CLOSE CLOSE 
+    	ID("char") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("short") 
+      	NONE CLOSE CLOSE 
+    	ID("short") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("int") 
+      	NONE CLOSE CLOSE 
+    	ID("int") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("long") 
+      	NONE CLOSE CLOSE 
+    	ID("long") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("signed") 
+      	NONE CLOSE CLOSE 
+    	ID("signed") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("unsigned") 
+      	NONE CLOSE CLOSE 
+    	ID("unsigned") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("float") 
+      	NONE CLOSE CLOSE 
+    	ID("float") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("double") 
+      	NONE CLOSE CLOSE 
+    	ID("double") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("const") 
+      	NONE CLOSE CLOSE 
+    	ID("const") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("volatile") 
+      	NONE CLOSE CLOSE 
+    	ID("volatile") CLOSE 
+   	TREE("rule") LIST TREE("literal") VAL("void") 
+      	NONE CLOSE CLOSE 
+    	ID("void") CLOSE 
+   	TREE("rule") LIST TREE("identalone") CLOSE CLOSE 
+    	ID("typename") CLOSE CLOSE CLOSE 
  	TREE("nt_def") ID("type_specifier") 
   	LIST TREE("rule") LIST TREE("literal") VAL("char") 
       	NONE CLOSE CLOSE 
