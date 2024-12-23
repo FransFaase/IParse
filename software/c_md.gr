@@ -98,7 +98,7 @@ constant_expr
 declaration
         : \nl ( storage_class_specifier | simple_type_specifier) SEQ OPT NONGREEDY
           ( ( declarator (\s "=" \s initializer) OPT) LIST ";"  [var]
-          ) [decl]
+          ) [vardecl]
         | \nl ( storage_class_specifier | type_specifier) SEQ OPT NONGREEDY
           ( func_declarator "(" parameter_declaration_list OPT ")"
             ( ";" | \nl "{" \inc decl_or_stat \nl \dec "}" )  [new_style]

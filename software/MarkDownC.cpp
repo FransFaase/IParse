@@ -446,6 +446,7 @@ public:
 		static Ident id_macro("macro");
 		static Ident id_include("include");
 		static Ident id_decl("decl");
+		static Ident id_vardecl("vardecl");
 		static Ident id_var("var");
 		static Ident id_enum("enum");
 		static Ident id_struct_d("struct_d");
@@ -479,7 +480,7 @@ public:
 			{
 				includesCursor.appendChild(decl);
 			}
-			else if (decl.isTree(id_decl))
+			else if (decl.isTree(id_decl) || decl.isTree(id_vardecl))
 			{
 				if (decl.part(2).isTree(id_var))
 				{

@@ -372,7 +372,7 @@ void init_MarkDownCGrammar( AbstractParseTree& root )
         	TREE("literal") VAL(";") 
          	NONE CLOSE CLOSE 
        	ID("var") CLOSE CLOSE CLOSE 
-    	ID("decl") CLOSE 
+    	ID("vardecl") CLOSE 
    	TREE("rule") LIST TREE("wsterminal") ID("nl") CLOSE 
      	TREE("opt") TREE("seq") LIST TREE("rule") LIST ID("storage_class_specifier") CLOSE 
          	NONE CLOSE 
