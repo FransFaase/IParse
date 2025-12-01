@@ -1032,7 +1032,10 @@ void init_MarkDownCGrammar( AbstractParseTree& root )
         	TREE("rule") LIST TREE("wsterminal") ID("nl") CLOSE 
           	TREE("literal") VAL("#include") 
            	NONE CLOSE 
-          	ID("string") CLOSE 
+          	LIST TREE("rule") LIST ID("string") CLOSE 
+            	NONE CLOSE 
+           	TREE("rule") LIST ID("inc_string") CLOSE 
+            	NONE CLOSE CLOSE CLOSE 
          	ID("include") CLOSE CLOSE 
        	NONE CLOSE 
       	NONE CLOSE 

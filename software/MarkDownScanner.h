@@ -16,6 +16,7 @@ private:
 	bool accept_ident(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_macro_ident(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_string(TextFileBuffer& text, AbstractParseTree& result, bool c_string);
+	bool accept_inc_string(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_char(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_int(TextFileBuffer& text, AbstractParseTree& result);
 	bool accept_double(TextFileBuffer& text, AbstractParseTree& result);
@@ -35,6 +36,7 @@ private:
 	static Ident id_macro_ident;
 	static Ident id_string;
 	static Ident id_cstring;
+	static Ident id_inc_string;
 	static Ident id_char;
 	static Ident id_int;
 	static Ident id_double;

@@ -560,6 +560,8 @@ bool MarkDownCTerminalUnparser::match(Ident terminal, const AbstractParseTree& t
 	return BasicTerminalUnparser::match(terminal, tree);
 }
 
+Ident id_inc_string = "inc_string";
+
 void MarkDownCTerminalUnparser::unparse(Ident terminal, const AbstractParseTree& tree)
 {
 	static Ident id_macro_ident = "macro_ident";
@@ -579,6 +581,22 @@ void MarkDownCTerminalUnparser::unparse(Ident terminal, const AbstractParseTree&
 		{
 			_stream.emit(*s);
 		}
+		return;
+	}
+	if (terminal == id_inc_string)
+	{
+		if (tree.isString())
+		{
+			if (_state == 'a')
+				_stream.emit(' ');
+			_stream.emit('<');
+			for (const char *s = tree.stringValue(); *s != '\0'; s++)
+				_stream.emit(*s);
+			_stream.emit('>');
+			_state = '"';
+		}
+		else
+			assert(0);
 		return;
 	}
 	

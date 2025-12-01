@@ -25,6 +25,7 @@ Ident MarkDownCScanner::id_ident = "ident";
 Ident MarkDownCScanner::id_macro_ident = "macro_ident";
 Ident MarkDownCScanner::id_string = "string";
 Ident MarkDownCScanner::id_cstring = "cstring";
+Ident MarkDownCScanner::id_inc_string = "inc_string";
 Ident MarkDownCScanner::id_char = "char";
 Ident MarkDownCScanner::id_int = "int";
 Ident MarkDownCScanner::id_double = "double";
@@ -165,6 +166,8 @@ bool MarkDownCScanner::acceptTerminal(TextFileBuffer& text, Ident name, Abstract
 		return accept_macro_ident(text, result);
 	if (name == id_string)
 		return accept_string(text, result, false);
+	if (name == id_inc_string)
+		return accept_inc_string(text, result);
 	if (name == id_cstring)
 		return accept_string(text, result, true);
 	if (name == id_char)
@@ -340,6 +343,39 @@ bool MarkDownCScanner::accept_string(TextFileBuffer& text, AbstractParseTree& re
 			}
 			else
 				break;
+		}
+		else
+		{   filler << *text;
+			text.next();
+		}
+	}
+	filler << '\0';
+
+	skipSpace(text);
+
+	result = string;
+	return true;
+}
+
+bool MarkDownCScanner::accept_inc_string(TextFileBuffer& text, AbstractParseTree& result)
+{
+	if (text.eof() || text[0] != '<')
+		return false;
+
+	text.next();
+
+	String string;
+	String::filler filler(string);
+
+	for (;;)
+	{
+		if (text.eof() || *text == '\0' || *text == '\n')
+		{
+			break;
+		}
+		else if (*text == '>')
+		{   text.next();
+			break;
 		}
 		else
 		{   filler << *text;

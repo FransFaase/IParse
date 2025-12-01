@@ -252,7 +252,7 @@ statement
 
 root    : ( \nl declaration
           | \nl "#define" macro_ident (\nows "(" ident LIST ")") OPT macro_def [macro]
-          | \nl "#include" string [include]
+          | \nl "#include" (string | inc_string) [include]
           ) SEQ OPT eof
         .
 

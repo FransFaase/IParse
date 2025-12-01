@@ -1,5 +1,5 @@
 
-#define VERSION "0.1 of February 17, 2021."
+#define VERSION "0.1 of December 1, 2025."
 
 /* 
 	First some standard definitions.
@@ -1076,9 +1076,6 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	printf("#include <stdio.h>\n");
-	printf("#include <malloc.h>\n");
-	printf("#include <string.h>\n\n");
 	
 	codeCollector.unparse(tree, with_line_numbers);
 
