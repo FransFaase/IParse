@@ -616,6 +616,15 @@ void MarkDownCTerminalUnparser::unparseWhiteSpace(Ident terminal)
 		BasicTerminalUnparser::unparseWhiteSpace(terminal);
 }
 
+bool MarkDownCTerminalUnparser::unparseNonTerminal(const AbstractParseTree& tree)
+{
+	if (!tree.isTree(id_inc_string))
+		return false;
+	unparse(id_inc_string, tree.part(1));
+	return true;
+}
+
+
 void MarkDownCTerminalUnparser::moveToLineAndColumn(const AbstractParseTree& tree)
 {
 	if (!_with_line_numbers || tree.isEmpty() || tree.filename() == 0)
@@ -752,6 +761,8 @@ bool Unparser::match_rule_elem(const AbstractParseTree& part, GrammarRule* rule)
 			return DEBUG_RESULT(true);
 			break;
 		case RK_TERM:
+			if (_terminalUnparser->unparseNonTerminal(part))
+				return DEBUG_RESULT(true);
 			return DEBUG_RESULT(_terminalUnparser->match(rule->text.terminal->name, part));
 			break;
 		case RK_WS_TERM:

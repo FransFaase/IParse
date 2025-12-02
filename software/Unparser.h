@@ -13,6 +13,7 @@ public:
 	virtual void unparseLiteral(const char* literal) = 0;
 	virtual void unparseLiteral(const char* literal, const AbstractParseTree& tree) { unparseLiteral(literal); }
 	virtual void unparseWhiteSpace(Ident terminal) = 0;
+	virtual bool unparseNonTerminal(const AbstractParseTree& tree) { return false; }
 };
 
 class BasicTerminalUnparser : public AbstractTerminalUnparser
@@ -64,6 +65,7 @@ public:
 	virtual void unparse(Ident terminal, const AbstractParseTree& tree);
 	virtual void unparseLiteral(const char* literal, const AbstractParseTree& tree);
 	virtual void unparseWhiteSpace(Ident terminal);
+	virtual bool unparseNonTerminal(const AbstractParseTree& tree);
 private:
 	void moveToLineAndColumn(const AbstractParseTree& tree);
 	bool _with_line_numbers;

@@ -422,9 +422,16 @@ class CodeCollector
 		VariableDecl(const Ident& n) : name(n), next(0) {}
 		~VariableDecl() { delete next; }
 	};
+	struct InputFile
+	{
+		String name;
+		InputFile *next;
+		InputFile(const char *n) : name(n), next(nullptr) {}
+	};
 public:
 	CodeCollector()
 	{
+		inputFiles = nullptr;
 		includes = AbstractParseTree::makeList();
 		defines = AbstractParseTree::makeList();
 		enumdecls = AbstractParseTree::makeList();
@@ -438,6 +445,14 @@ public:
 	{
 		delete funcdecls;
 		delete vardecls;
+	}
+
+	void AddInputFile(const char *name)
+	{
+		InputFile **ref_input_file = &inputFiles;
+		while (*ref_input_file != nullptr)
+			ref_input_file = &(*ref_input_file)->next;
+		*ref_input_file = new InputFile(name);
 	}
 
 	void Process(AbstractParseTree tree)
@@ -884,6 +899,11 @@ public:
 		unparser.loadGrammarForUnparse(grammarTree, &unparseErrorCollector);
 		CharStreamToFile charToTextFileStream(stdout, /*text*/false);
 		
+		printf("// This is generated with MarkDownC %s\n// from the files:\n", VERSION);
+		for (InputFile *inputFile = inputFiles; inputFile != nullptr; inputFile = inputFile->next)
+			printf("// - %s\n", inputFile->name.val());
+		printf("\n");
+
 		printf("// *** includes ***\n");
 		unparser.unparse(includes, "root", &charToTextFileStream);
 		printf("\n\n// *** defines ***\n");
@@ -935,6 +955,7 @@ public:
 		unparser.unparse(others, "root", &charToTextFileStream);
 	}
 private:
+	InputFile *inputFiles;
 	AbstractParseTree includes;
 	AbstractParseTree defines;
 	AbstractParseTree typedefs;
@@ -1056,6 +1077,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
+				codeCollector.AddInputFile(filename);
 				TextFileBuffer textBuffer;
 				plainFileReader.read(fin, textBuffer);
 				
