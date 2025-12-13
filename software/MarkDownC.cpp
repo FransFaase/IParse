@@ -499,134 +499,142 @@ public:
 			{
 				if (decl.part(2).isTree(id_var))
 				{
-					AbstractParseTreeCursor kind = AbstractParseTreeCursor(decl).part(1).part(1);
-					if (kind.isTree(id_enum))
+					if (decl.part(1).isEmpty())
 					{
-						Ident enum_name = kind.part(1).identName();
-						AbstractParseTreeCursor earlierDecl = findMatchingP1P1(enumdeclsCursor, enum_name);
-						if (kind.part(2).part(1).isTree(id_elipses))
-						{
-							printf("enum %s with elipses\n", enum_name.val());
-							if (!earlierDecl.attached())
-							{
-								printf("Error %d.%d: enum %s with elipses has no earlier definition\n",
-									kind.line(), kind.column(), enum_name.val());
-							}
-							else
-							{
-								//printf("Combine: ");
-								//earlierDecl.print(stdout, true);
-								//printf("\nWith:    ");
-								//kind.print(stdout, true);
-								//printf("\n");
-								for (AbstractParseTreeIteratorCursor newIt(kind.part(2).part(2)); newIt.more(); newIt.next())
-									earlierDecl.part(2).part(2).appendChild(AbstractParseTreeCursor(newIt));
-								//printf("Into:    ");
-								//earlierDecl.print(stdout, true);
-								//printf("\n");
-							}
-						}
-						else
-						{
-							if (earlierDecl.attached())
-							{
-								printf("/* Warning %d.%d: redefinition of enum %s from %d.%d */\n",
-									kind.line(), kind.column(), enum_name.val(), earlierDecl.line(), earlierDecl.column());
-								earlierDecl.replaceBy(kind);
-							}
-							else
-							{
-								enumdeclsCursor.appendChild(decl);
-							}
-						}
-					}
-					else if (kind.isTree(id_typedef))
-					{
-						typedefsCursor.appendChild(decl);
-					}
-					else if (kind.isTree(id_struct_d) || kind.isTree(id_union_d))
-					{
-						const char *type = kind.type();
-						//decl.print(stdout, false);
-						Ident name = kind.part(1).identName();
-						AbstractParseTreeCursor earlierDecl = findMatchingP1P1(typedeclsCursor, name);
-						if (kind.part(2).isTree(id_elipses))
-						{
-							//printf("%s %s with elipses\n", type, name.val());
-							if (!earlierDecl.attached())
-							{
-								printf("Error %d.%d: %s %s with elipses has no earlier definition\n",
-									kind.line(), kind.column(), type, name.val());
-							}
-							else
-							{
-								// printf("Combine:\n"); earlierDecl.print(stdout, false); printf("\nWith:\n"); kind.print(stdout, false); printf("\n");
-								combineMembers(earlierDecl.part(3), kind.part(3));
-							}
-						}
-						else
-						{
-							if (earlierDecl.attached())
-							{
-								printf("/* Warning %d.%d: redefinition of %s %s from %d.%d */\n",
-									kind.line(), kind.column(), type, name.val(), earlierDecl.line(), earlierDecl.column());
-								earlierDecl.replaceBy(kind);
-							}
-							else
-							{
-								typedeclsCursor.appendChild(decl);
-							}
-						}
+						printf("/* Error %d.%d: declaration has not type\n",
+							decl.line(), decl.column());
 					}
 					else
 					{
-						//printf("/*\n\nvariable:\n");
-						AbstractParseTree var_decls = decl;
-						//var_decls.print(stdout, false);
-						//var_decls.part(2).print(stdout, false);
-						AbstractParseTree vars = decl.part(2).part(1);
-						for (AbstractParseTreeIteratorCursor varIt(vars); varIt.more(); varIt.next())
+						AbstractParseTreeCursor kind = AbstractParseTreeCursor(decl).part(1).part(1);
+						if (kind.isTree(id_enum))
 						{
-							Ident name;
-							AbstractParseTreeCursor var = varIt;
-							AbstractParseTreeCursor namePart = var.part(1);
-							//printf("\nVar:\n");
-							//namePart.print(stdout, false);
-							for (;;)
+							Ident enum_name = kind.part(1).identName();
+							AbstractParseTreeCursor earlierDecl = findMatchingP1P1(enumdeclsCursor, enum_name);
+							if (kind.part(2).part(1).isTree(id_elipses))
 							{
-								if (namePart.isIdent())
+								//printf("enum %s with elipses\n", enum_name.val());
+								if (!earlierDecl.attached())
 								{
-									name = namePart.identName();
-									break;
-								}
-								else if (namePart.isTree(id_pointdecl))
-								{
-									namePart = namePart.part(2);
-								}
-								else if (namePart.isTree(id_array))
-								{
-									namePart = namePart.part(1);
+									printf("/* Error %d.%d: enum %s with elipses has no earlier definition\n",
+										kind.line(), kind.column(), enum_name.val());
 								}
 								else
 								{
-									printf("Error: Unknown function type %s\n", namePart.type());
-									namePart.print(stdout, false);
-									printf("\n");
-									break;
+									//printf("Combine: ");
+									//earlierDecl.print(stdout, true);
+									//printf("\nWith:    ");
+									//kind.print(stdout, true);
+									//printf("\n");
+									for (AbstractParseTreeIteratorCursor newIt(kind.part(2).part(2)); newIt.more(); newIt.next())
+										earlierDecl.part(2).part(2).appendChild(AbstractParseTreeCursor(newIt));
+									//printf("Into:    ");
+									//earlierDecl.print(stdout, true);
+									//printf("\n");
 								}
 							}
-							//printf("name %s\n", name.val());
-							VariableDecl *variableDecl = findVariableDecl(name);
-							AbstractParseTree newVarList;
-							newVarList.createList();
-							newVarList.appendChild(var);
-							AbstractParseTreeCursor var_decls_cur = var_decls;
-							var_decls_cur.part(2).part(1).replaceBy(newVarList);
-							//printf("\nReplaced:\n");
-							//var_decls.print(stdout, false);
-							variableDecl->decl = var_decls;
+							else
+							{
+								if (earlierDecl.attached())
+								{
+									printf("/* Warning %d.%d: redefinition of enum %s from %d.%d */\n",
+										kind.line(), kind.column(), enum_name.val(), earlierDecl.line(), earlierDecl.column());
+									earlierDecl.replaceBy(kind);
+								}
+								else
+								{
+									enumdeclsCursor.appendChild(decl);
+								}
+							}
 						}
-						//printf("\n*/");
+						else if (kind.isTree(id_typedef))
+						{
+							typedefsCursor.appendChild(decl);
+						}
+						else if (kind.isTree(id_struct_d) || kind.isTree(id_union_d))
+						{
+							const char *type = kind.type();
+							//decl.print(stdout, false);
+							Ident name = kind.part(1).identName();
+							AbstractParseTreeCursor earlierDecl = findMatchingP1P1(typedeclsCursor, name);
+							if (kind.part(2).isTree(id_elipses))
+							{
+								//printf("%s %s with elipses\n", type, name.val());
+								if (!earlierDecl.attached())
+								{
+									printf("/* Error %d.%d: %s %s with elipses has no earlier definition\n",
+										kind.line(), kind.column(), type, name.val());
+								}
+								else
+								{
+									// printf("Combine:\n"); earlierDecl.print(stdout, false); printf("\nWith:\n"); kind.print(stdout, false); printf("\n");
+									combineMembers(earlierDecl.part(3), kind.part(3));
+								}
+							}
+							else
+							{
+								if (earlierDecl.attached())
+								{
+									printf("/* Warning %d.%d: redefinition of %s %s from %d.%d */\n",
+										kind.line(), kind.column(), type, name.val(), earlierDecl.line(), earlierDecl.column());
+									earlierDecl.replaceBy(kind);
+								}
+								else
+								{
+									typedeclsCursor.appendChild(decl);
+								}
+							}
+						}
+						else
+						{
+							//printf("/*\n\nvariable:\n");
+							AbstractParseTree var_decls = decl;
+							//var_decls.print(stdout, false);
+							//var_decls.part(2).print(stdout, false);
+							AbstractParseTree vars = decl.part(2).part(1);
+							for (AbstractParseTreeIteratorCursor varIt(vars); varIt.more(); varIt.next())
+							{
+								Ident name;
+								AbstractParseTreeCursor var = varIt;
+								AbstractParseTreeCursor namePart = var.part(1);
+								//printf("\nVar:\n");
+								//namePart.print(stdout, false);
+								for (;;)
+								{
+									if (namePart.isIdent())
+									{
+										name = namePart.identName();
+										break;
+									}
+									else if (namePart.isTree(id_pointdecl))
+									{
+										namePart = namePart.part(2);
+									}
+									else if (namePart.isTree(id_array))
+									{
+										namePart = namePart.part(1);
+									}
+									else
+									{
+										printf("/* Error: Unknown function type %s\n", namePart.type());
+										namePart.print(stdout, false);
+										printf("\n");
+										break;
+									}
+								}
+								//printf("name %s\n", name.val());
+								VariableDecl *variableDecl = findVariableDecl(name);
+								AbstractParseTree newVarList;
+								newVarList.createList();
+								newVarList.appendChild(var);
+								AbstractParseTreeCursor var_decls_cur = var_decls;
+								var_decls_cur.part(2).part(1).replaceBy(newVarList);
+								//printf("\nReplaced:\n");
+								//var_decls.print(stdout, false);
+								variableDecl->decl = var_decls;
+							}
+							//printf("\n*/");
+						}
 					}
 				}
 				else if (decl.part(2).isTree(id_new_style))
@@ -649,7 +657,7 @@ public:
 						}
 						else
 						{
-							printf("Error: Unknown function type %s\n", namePart.type());
+							printf("/* Error: Unknown function type %s\n", namePart.type());
 							break;
 						}
 					}
@@ -723,7 +731,7 @@ public:
 				}
 				else
 				{
-					printf("Error: old style function declaration not supported\n");
+					printf("/* Error: old style function declaration not supported\n");
 				}
 			}
 			else
@@ -779,7 +787,7 @@ private:
 				//printf("Match\n"); newMember.print(stdout, false); matching.print(stdout, false);
 				if (!newMember.isTree(id_type) || !matching.isTree(id_type) || newMember.part(1).type() != matching.part(1).type())
 				{
-					printf("Error: %d.%d: type does not match for merging with %d.%d\n",
+					printf("/* Error: %d.%d: type does not match for merging with %d.%d\n",
 						newMember.line(), newMember.column(), matching.line(), matching.column());
 				}
 				else
@@ -870,7 +878,7 @@ public:
 			UnparseErrorCollector(FILE *f) : _f(f) {}
 			virtual void errorDifferentRulesWithSameType(Ident type, GrammarRule* rule1, GrammarRule* rule2)
 			{
-				fprintf(_f, "Error: different rules with type %s\n", type.val());
+				fprintf(_f, "/* Error: different rules with type %s\n", type.val());
 				print_rule(rule1);
 				print_rule(rule2);
 			}
